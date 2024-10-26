@@ -87,10 +87,12 @@ upper_memory:
   pushq 0x8
   push rax
   retfq
-.reload_cs:
-
+.reload_cs: 
   //; Jump to kmain()
 .extern kernel_main
+  movabs rax, offset _init
+  call rax
+
   movabs rax, offset kernel_main
   call rax
 
