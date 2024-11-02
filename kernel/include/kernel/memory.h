@@ -8,7 +8,7 @@
 #include <stdint.h>
 #define V2P(a) ((uintptr_t)(a) & ~KERNEL_OFFSET)
 #define P2V(a) ((void *)((uintptr_t)(a) | KERNEL_OFFSET))
-#define incptr(p, n) ((void *)(((uintptr_t)(p)) + (n)))
+#define incptr(p, n) ((void *)(((char *)(p)) + (n)))
 #endif
 
 #define P1_OFFSET(a) (((a) >> 12) & 0x1FF)
@@ -24,3 +24,9 @@
 
 #define PAGE_SIZE 0x1000
 #define ENTRIES_PER_PT 512
+
+#ifndef __ASSEMBLER__
+
+void init_mman();
+
+#endif

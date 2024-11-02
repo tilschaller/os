@@ -90,8 +90,14 @@ upper_memory:
 .reload_cs: 
   //; Jump to kmain()
 .extern kernel_main
+  pushq rsi
+  pushq rdi
+
   movabs rax, offset _init
   call rax
+
+  popq rdi
+  popq rsi
 
   movabs rax, offset kernel_main
   call rax
