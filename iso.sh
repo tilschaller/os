@@ -8,6 +8,7 @@ mkdir -p isodir/boot/grub
 
 cp sysroot/boot/myos.kernel isodir/boot/myos.kernel
 cat > isodir/boot/grub/grub.cfg << EOF
+insmod all_video
 menuentry "myos" {
 	multiboot2 /boot/myos.kernel
 }
