@@ -10,7 +10,7 @@ void kernel_main(uint64_t multiboot_magic, void *multiboot_data) {
     init_mman(); // doesnt actually
 
     void *framebuffer_addr =
-        (void *)(0x200001 + KERNEL_OFFSET); // mapped after 2 mb of kernel_data
+        (void *)(0x200000 + KERNEL_OFFSET); // mapped after 2 mb of kernel_data
 
     for (;;) {
     }
