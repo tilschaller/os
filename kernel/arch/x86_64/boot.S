@@ -45,7 +45,7 @@ _start:
   //; Load a new GDT
   lgdt [V2P(BootGDTp)]
   //; and update the code selector by a long jump
-jmp 0x8:V2P(long_mode_start)
+  jmp 0x8:V2P(long_mode_start)
 
 .code64
   long_mode_start:
@@ -57,11 +57,13 @@ jmp 0x8:V2P(long_mode_start)
   mov es, eax
   
   //; Jump to kernel address space
+  //movabs rax, offset upper_memory
+  //jmp rax
   movabs rax, offset upper_memory
-  jmp rax
+  push rax
+  retq
 
 upper_memory:
-
   //; Move stack pointer to kernel space
   mov rax, KERNEL_OFFSET
   add rsp, rax

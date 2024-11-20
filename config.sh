@@ -14,7 +14,7 @@ export BOOTDIR=/boot
 export LIBDIR=$EXEC_PREFIX/lib
 export INCLUDEDIR=$PREFIX/include
 
-export CFLAGS='-g'
+export CFLAGS='-g -mcmodel=large -m64 ' # add -O2 back
 export CPPFLAGS=''
 
 # Configure the cross-compiler to use the desired system root.

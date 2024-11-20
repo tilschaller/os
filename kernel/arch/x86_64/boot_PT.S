@@ -1,6 +1,8 @@
 #include <kernel/memory.h>
 .intel_syntax noprefix
 
+//TODO: free this mem after booting
+
 .section .data
 .align PAGE_SIZE
 .global BootP4

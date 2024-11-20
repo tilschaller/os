@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct multiboot_tag_mmap *mmap;
+struct multiboot_tag_mmap *memmap;
 struct multiboot_tag_framebuffer *framebuffer_info;
 
 void parse_multiboot(void *multiboot_data) {
@@ -15,7 +15,7 @@ void parse_multiboot(void *multiboot_data) {
   while (tag) {
     switch (tag->type) {
     case 6:
-      mmap = (struct multiboot_tag_mmap *)tag;
+      memmap = (struct multiboot_tag_mmap *)tag;
       break;
     case 8:
       framebuffer_info = (struct multiboot_tag_framebuffer *)tag;
