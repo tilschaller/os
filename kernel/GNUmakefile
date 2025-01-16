@@ -96,6 +96,7 @@ override ASFILES := $(filter %.S,$(SRCFILES))
 override NASMFILES := $(filter %.asm,$(SRCFILES))
 override OBJ := $(addprefix obj/,$(CFILES:.c=.c.o) $(ASFILES:.S=.S.o) $(NASMFILES:.asm=.asm.o))
 override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
+override FONT_FILES := $(addprefix fonts/, $(shell cd fonts && find -L *.o | sort))
 
 # Default target. This must come first, before header dependencies.
 .PHONY: all
@@ -117,7 +118,7 @@ cc-runtime-x86_64/cc-runtime.a: GNUmakefile cc-runtime/*
 # Link rules for the final executable.
 bin/$(OUTPUT): GNUmakefile linker.ld $(OBJ) cc-runtime-x86_64/cc-runtime.a
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) cc-runtime-x86_64/cc-runtime.a -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) $(FONT_FILES) cc-runtime-x86_64/cc-runtime.a -o $@
 
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c GNUmakefile

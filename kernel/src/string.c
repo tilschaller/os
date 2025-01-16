@@ -1,3 +1,7 @@
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 // GCC and Clang reserve the right to generate calls to the following
 // 4 functions even if they are not directly called.
 // Implement them as the C specification mandates.
@@ -53,4 +57,11 @@ int memcmp(const void *s1, const void *s2, size_t n) {
     }
 
     return 0;
+}
+
+size_t strlen(const char* str) {
+    size_t len = 0;
+    while (str[len])
+        len++;
+    return len;
 }
