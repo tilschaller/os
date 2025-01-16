@@ -71,19 +71,28 @@ int printf(const char* restrict format, ...) {
 			written += len;
 		} else if (*format == 'd'){
 			format++;
-			int original, reversed, remainder;
+			int original, reversed, remainder, size;
 			char c;
 			original = va_arg(parameters, int);
-			while (original!=0) {
+			if (original == 0) {
+				c = (char)0x30;
+				print(&c, 1);
+				goto printf_d_end;
+			}
+			while (original) {
     			remainder = original % 10;
     			reversed = reversed * 10 + remainder;
    				original /= 10;
+   				size++;
   			}
-  			while (reversed) {
+  			for (original=0; original < size; ++original) {
   				c = (reversed % 10) + '0';
   				print(&c, 1);
   				reversed /= 10;
   			}
+  			printf_d_end:
+  			size = 0;
+  			//TODO: fix printing integers
 		} else {
 			format = format_begun_at;
 			size_t len = strlen(format);

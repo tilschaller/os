@@ -79,7 +79,7 @@ void kmain(void) {
 
     printf("---------------------\n");
     printf("---Starting kernel---\n");
-    printf("---------------------\n");
+    printf("---------------------\n\n");
 
     printf("Initializing Memory Manager\n");
 
