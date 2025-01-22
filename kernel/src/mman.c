@@ -6,7 +6,7 @@
 #include <string.h>
 #include <ssfn.h>
 
-#define PAGE_SIZE 0x20000
+#define PAGE_SIZE 0x200000
 #define HIGHER_HALF 0xffff800000000000
 #define KERNEL_OFFSET 0xffffffff80000000
 
@@ -71,7 +71,7 @@ uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count) {
 	uint64_t size = 0;
 
 	for (int i = 0; i < entry_count; ++i) {
-		if (entries[i]->type == 0 && entries[i]->length >= 0x4020000) {
+		if (entries[i]->type == 0 && entries[i]->length >= 0x40200000) {
 			mem_ptr = entries[i]->base;
 			size = entries[i]->length;
 			break;
@@ -84,7 +84,7 @@ uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count) {
 
 	kprintf("Found at least 2GB of continuous RAM\n");
 
-	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
+	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE  + PAGE_SIZE;
 
 	return mem_ptr;
 }
@@ -146,11 +146,13 @@ void init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_ker
 	asm volatile("mov %0, %%cr3" : : "r" ((uint64_t)root_table_4 - KERNEL_OFFSET + phys_kernel_addr) : "memory");
 
 	//changing stack pointer to mapped mem
-	asm volatile ("mov %%rsp, %0":: "r" (HIGHER_HALF + 0x4000000 - 0x20000): "%rsp");
+	asm volatile("mov %%rsp, %0":: "r" (HIGHER_HALF + 0x40000000 - PAGE_SIZE): "%rsp");
 
-	ssfn_dst.ptr = (void *)(HIGHER_HALF + 0x4000000); //should point to framebuffer
+	ssfn_dst.ptr = (void *)(HIGHER_HALF + 0x40000000); //should point to framebuffer
 
-	//kprintf("Changed GDT and paging table\n");
+	kprintf("Changed GDT and paging table\n");
 
 	kmain();
+
+	//doesnt return
 }

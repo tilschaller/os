@@ -110,9 +110,12 @@ void kmain_early(void) {
         kprintf("Failed to find suitable RAM");
         hcf();
     }
+
+    init_paging(free_mem, (uint64_t)framebuffer->address - limine_hhdm_offset, phys_kernel_addr);
+    //doesnt return execution continues at kmain();
 }
 
 void kmain() {
-    hcf();
     kprintf("Finished memory setup\n");
+    hcf();
 }
