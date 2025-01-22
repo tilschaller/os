@@ -16,7 +16,7 @@ CC := clang
 AR := ar
 
 # User controllable C flags.
-CFLAGS := -g -O2 -pipe
+CFLAGS := -ggdb -pipe
 
 # User controllable C preprocessor flags. We set none by default.
 CPPFLAGS :=

@@ -7,7 +7,8 @@
 #define SSFN_CONSOLEBITMAP_TRUECOLOR
 #include <ssfn.h>
 
-#include <stdio.h>
+#include <kstdio.h>
+#include <mman.h>
 
 
 // Set the base revision to 3, this is recommended as this is the latest
@@ -34,6 +35,19 @@ static volatile struct limine_memmap_request memmap_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
+    .revision = 0
+};
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_executable_address_request exe_addr_request = {
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
+    .revision = 0
+};
+
+
 // Finally, define the start and end markers for the Limine requests.
 // These can also be moved anywhere, to any .c file, as seen fit.
 
@@ -53,7 +67,9 @@ static void hcf(void) {
 extern unsigned char _binary_u_vga16_sfn_start;
 
 //Kernel entry point
-void kmain(void) {
+void kmain_early(void) {
+    asm("cli");
+
     // Ensure the bootloader actually understands our base revision (see spec).
     if (LIMINE_BASE_REVISION_SUPPORTED == false) {
         hcf();
@@ -65,11 +81,16 @@ void kmain(void) {
         hcf();
     }
 
-    // Fetch the first framebuffer.
+    //retrieving data from bootloader
+    uint64_t limine_hhdm_offset = hhdm_request.response->offset;
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    struct limine_memmap_entry **entries = memmap_request.response->entries;
+    int entry_count = memmap_request.response->entry_count;
+    uint64_t phys_kernel_addr = exe_addr_request.response->physical_base;
 
+
+    //setting up the printf function
     ssfn_src = &_binary_u_vga16_sfn_start;
-
     ssfn_dst.ptr = framebuffer->address;
     ssfn_dst.w = framebuffer->width;
     ssfn_dst.h = framebuffer->height;
@@ -77,14 +98,21 @@ void kmain(void) {
     ssfn_dst.x = ssfn_dst.y = 0;
     ssfn_dst.fg = 0xFFFFFF;
 
-    printf("---------------------\n");
-    printf("---Starting kernel---\n");
-    printf("---------------------\n\n");
 
-    printf("Initializing Memory Manager\n");
+    kprintf("---------------------\n");
+    kprintf("---Starting kernel---\n");
+    kprintf("---------------------\n\n");
 
-    struct limine_memmap_entry **entries = memmap_request.response->entries;
+    kprintf("Initializing Memory Manager\n");
 
-    // We're done, just hang...
+    uint64_t free_mem = find_mem(entries, entry_count);
+    if (free_mem == 0) {
+        kprintf("Failed to find suitable RAM");
+        hcf();
+    }
+}
+
+void kmain() {
     hcf();
+    kprintf("Finished memory setup\n");
 }
