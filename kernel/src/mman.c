@@ -1,8 +1,8 @@
 #include <mman.h>
 #include <limine.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <kstdio.h>
-#include <string.h>
 #include <string.h>
 #include <ssfn.h>
 
@@ -84,7 +84,7 @@ uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count) {
 
 	kprintf("Found at least 2GB of continuous RAM\n");
 
-	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE  + PAGE_SIZE;
+	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
 
 	return mem_ptr;
 }
@@ -120,7 +120,11 @@ uint64_t kernel_table_3[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_2[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_1[512][512] __attribute__((aligned(0x1000))) = {0};
 
-void init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr) {
+int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr) {
+  if (framebuffer_addr % PAGE_SIZE != 0) {
+    return -1;
+  }
+
 	//filling page tables
 	root_table_4[256] = ((uint64_t)&high_table_3[0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
 	root_table_4[511] = ((uint64_t)&kernel_table_3 - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
@@ -155,4 +159,88 @@ void init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_ker
 	kmain();
 
 	//doesnt return
+  return 0;
+}
+
+#define USED 1
+#define FREE 0
+
+struct mem_chunk {
+  void *ptr;
+  size_t size;
+  struct mem_chunk *next;
+  struct mem_chunk *prev;
+  int state;
+};
+
+struct mem_chunk first_chunk = {
+  .ptr = (void *)HIGHER_HALF,
+  .size =  0x40000000 - PAGE_SIZE,
+  .next = NULL,
+  .prev = NULL,
+  .state = FREE,
+};
+
+void *kalloc(size_t size) {  
+  struct mem_chunk *cur;
+  cur = &first_chunk;
+
+  //parse the mem_chunk_structs
+  while (1) {
+    if (cur->size == size && cur->state == FREE) {
+      break;
+    }
+    if (cur->size >= size + sizeof(struct mem_chunk) && cur->state == FREE) {
+      break;
+    }
+    if (cur->next != 0) {
+      cur = cur->next;
+    } else {
+      kprintf("Error: Could not find RAM for kernel");
+      return NULL;
+    }
+  }
+
+  if (cur->size == size) {
+    cur->state = USED;
+    return cur->ptr;
+  }
+
+  struct mem_chunk *new;
+  new = cur->ptr + cur->size;
+
+  new->ptr = (void *)new + sizeof(struct mem_chunk);
+  new->size = size;
+  new->next = NULL;
+  new->prev = cur;
+  new->state = USED;
+  
+  if (cur->next != NULL) {
+    new->next = cur->next;
+  }
+
+  cur->next = new;
+
+  return new->ptr;
+}
+
+static void merge_mem_chunks();
+
+void kfree(void *ptr) {
+  struct mem_chunk *to_delete, *prev;
+  to_delete = ptr - sizeof(struct mem_chunk);
+  prev = to_delete->prev;
+  
+  if (prev->state == USED) {
+    to_delete->state = FREE;
+  } else {
+    prev->size = to_delete->size + sizeof(struct mem_chunk);
+    prev->next = to_delete->next;
+  }
+
+  merge_mem_chunks();
+}
+
+static void merge_mem_chunks() {
+  //TODO: look for fragmentation in the mem chunks
 }

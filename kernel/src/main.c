@@ -10,6 +10,8 @@
 #include <kstdio.h>
 #include <mman.h>
 
+#include <string.h>
+
 
 // Set the base revision to 3, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -110,12 +112,19 @@ void kmain_early(void) {
         kprintf("Failed to find suitable RAM");
         hcf();
     }
-
-    init_paging(free_mem, (uint64_t)framebuffer->address - limine_hhdm_offset, phys_kernel_addr);
-    //doesnt return execution continues at kmain();
+    
+    if (init_paging(free_mem, (uint64_t)framebuffer->address - limine_hhdm_offset, phys_kernel_addr) != 0) {
+      kprintf("Error when enabling paging");
+    }
 }
 
 void kmain() {
     kprintf("Finished memory setup\n");
+  
+    void *mem = kalloc(100);
+    memset(mem, 0, 100);
+    kfree(mem);
+    kprintf("Memory Manager done");
+
     hcf();
 }
