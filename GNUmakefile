@@ -124,3 +124,7 @@ clean:
 distclean: clean
 	$(MAKE) -C kernel distclean
 	rm -rf kernel-deps limine ovmf
+
+.PHONY: write-to-usb
+write-to-usb: $(IMAGE_NAME).iso
+	sudo dd if=$(IMAGE_NAME).iso of=/dev/sda1 bs=1M status=progress

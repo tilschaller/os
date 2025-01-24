@@ -124,7 +124,6 @@ void kmain() {
     void *mem = kalloc(100);
     memset(mem, 0, 100);
     kfree(mem);
-    kprintf("Memory Manager done");
 
     hcf();
 }
