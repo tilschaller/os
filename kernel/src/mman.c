@@ -2,9 +2,8 @@
 #include <limine.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <kstdio.h>
-#include <string.h>
 #include <ssfn.h>
+#include <kstdio.h>
 
 #define PAGE_SIZE 0x200000
 #define HIGHER_HALF 0xffff800000000000
@@ -82,8 +81,6 @@ uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count) {
 		return 0;
 	}
 
-	kprintf("Found at least 2GB of continuous RAM\n");
-
 	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
 
 	return mem_ptr;
@@ -120,9 +117,13 @@ uint64_t kernel_table_3[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_2[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_1[512][512] __attribute__((aligned(0x1000))) = {0};
 
+__attribute__((noreturn))
 int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr) {
   if (framebuffer_addr % PAGE_SIZE != 0) {
-    return -1;
+    kprintf("Error: Framebuffer not aligned");
+    for (;;) {
+      asm volatile("hlt");
+    }
   }
 
 	//filling page tables
@@ -145,21 +146,16 @@ int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kern
 
 	//loading gdtr
 	asm volatile("lgdt %0" :: "m"(gdtr));
-
 	//loading cr3
 	asm volatile("mov %0, %%cr3" : : "r" ((uint64_t)root_table_4 - KERNEL_OFFSET + phys_kernel_addr) : "memory");
 
-	//changing stack pointer to mapped mem
-	asm volatile("mov %%rsp, %0":: "r" (HIGHER_HALF + 0x40000000 - PAGE_SIZE): "%rsp");
+  asm volatile("mov %0, %%rsp":: "r" (HIGHER_HALF + 0x40000000 - PAGE_SIZE): "%rsp");
 
 	ssfn_dst.ptr = (void *)(HIGHER_HALF + 0x40000000); //should point to framebuffer
 
-	kprintf("Changed GDT and paging table\n");
-
 	kmain();
 
-	//doesnt return
-  return 0;
+	//doesnt return 
 }
 
 #define USED 1
@@ -196,7 +192,6 @@ void *kalloc(size_t size) {
     if (cur->next != 0) {
       cur = cur->next;
     } else {
-      kprintf("Error: Could not find RAM for kernel");
       return NULL;
     }
   }

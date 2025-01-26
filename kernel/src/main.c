@@ -9,6 +9,7 @@
 
 #include <kstdio.h>
 #include <mman.h>
+#include <int.h>
 
 #include <string.h>
 
@@ -60,7 +61,7 @@ __attribute__((used, section(".limine_requests_end")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
 // Halt and catch fire function.
-static void hcf(void) {
+void hcf(void) {
     for (;;) {
         asm ("hlt");
     }
@@ -69,6 +70,7 @@ static void hcf(void) {
 extern unsigned char _binary_u_vga16_sfn_start;
 
 //Kernel entry point
+__attribute__((noreturn))
 void kmain_early(void) {
     asm("cli");
 
@@ -92,7 +94,7 @@ void kmain_early(void) {
 
 
     //setting up the printf function
-    ssfn_src = &_binary_u_vga16_sfn_start;
+    ssfn_src = (ssfn_font_t *)&_binary_u_vga16_sfn_start;
     ssfn_dst.ptr = framebuffer->address;
     ssfn_dst.w = framebuffer->width;
     ssfn_dst.h = framebuffer->height;
@@ -115,15 +117,19 @@ void kmain_early(void) {
     
     if (init_paging(free_mem, (uint64_t)framebuffer->address - limine_hhdm_offset, phys_kernel_addr) != 0) {
       kprintf("Error when enabling paging");
+      hcf();
     }
+  hcf();
 }
 
+__attribute__((noreturn))
 void kmain() {
-    kprintf("Finished memory setup\n");
-  
-    void *mem = kalloc(100);
-    memset(mem, 0, 100);
-    kfree(mem);
+  kprintf("Early setup finished, now inside kmain\n");
 
+  if (init_int() != 0) {
+    kprintf("Failed to set up IDT");
     hcf();
+  }
+  
+  hcf();
 }
