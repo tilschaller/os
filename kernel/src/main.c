@@ -61,7 +61,7 @@ __attribute__((used, section(".limine_requests_end")))
 static volatile LIMINE_REQUESTS_END_MARKER;
 
 // Halt and catch fire function.
-void hcf(void) {
+static void hcf(void) {
     for (;;) {
         asm ("hlt");
     }
@@ -130,6 +130,8 @@ void kmain() {
     kprintf("Failed to set up IDT");
     hcf();
   }
+
+  kprintf("Interrupts enabled\n");
   
   hcf();
 }

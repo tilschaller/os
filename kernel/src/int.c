@@ -25,7 +25,7 @@ struct IDTR {
     uint64_t base;
 } __attribute__((packed));
 
-__attribute__((aligned(16))) struct IDTEntry idt[34];
+__attribute__((aligned(16))) struct IDTEntry idt[256];
 
 struct IDTR idtr = {
     .limit = sizeof(idt) - 1,
@@ -109,13 +109,13 @@ void PIC_remap(int offset1, int offset2)
 	outb(PIC2_DATA, ICW4_8086);
 	io_wait();
 
-  outb(0x36, 0x43); // 0x36 is the control word, 0x43 is the command port
+  //outb(0x36, 0x43); // 0x36 is the control word, 0x43 is the command port
 
   // Set the divisor for 100 Hz (divisor = 11931)
-  outb(0x1F, 0x40); // Low byte
-  outb(0x2E, 0x40); // High byte
+  //outb(0x1F, 0x40); // Low byte
+  //outb(0x2E, 0x40); // High byte
 	
-	outb(PIC1_DATA, ~(0x03));
+	outb(PIC1_DATA, ~(0x02));
 	outb(PIC2_DATA, ~(0x00));
 }
 
@@ -125,7 +125,7 @@ int init_int() {
   for (int i = 0; i < 32; i++) {
     set_idt_entry(i, isr_stub_table[i], 0x28, 0x8e);
   }
-  set_idt_entry(33, isr_stub_table[33], 0x28, 0x8e);
+  set_idt_entry(0x21, isr_stub_table[32], 0x28, 0x8e);
 
   asm volatile("lidt %0" :: "m"(idtr));		
   

@@ -93,5 +93,4 @@ isr_stub_table:
     dq isr_stub_%+i ; use DQ instead if targeting 64-bit
 %assign i i+1 
 %endrep
-    dq 0
     dq isr_keyboard_stub 
