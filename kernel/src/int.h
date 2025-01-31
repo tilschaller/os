@@ -4,4 +4,3 @@
 int init_int();
 
 #endif
-

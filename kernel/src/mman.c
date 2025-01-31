@@ -1,9 +1,10 @@
-#include <mman.h>
+#include <kstdio.h>
 #include <limine.h>
+#include <mman.h>
+#include <ssfn.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <ssfn.h>
-#include <kstdio.h>
 
 #define PAGE_SIZE 0x200000
 #define HIGHER_HALF 0xffff800000000000
@@ -17,22 +18,24 @@
 
 extern void kmain();
 
-static int pmm_get_bit_status(int bit_number);
+static int pmm_get_it_status(int bit_number);
 static void pmm_set_bit_used(int bit_number);
 static void pmm_set_bit_free(int bit_number);
 
 uint64_t *bitmap;
 
-struct GDTEntry {
-    uint16_t limit_low;      // Lower 16 bits of the limit
-    uint16_t base_low;       // Lower 16 bits of the base
-    uint8_t base_middle;     // Middle 8 bits of the base
-    uint8_t access;          // Access byte
-    uint8_t granularity;     // Granularity and higher limit
-    uint8_t base_high;       // Higher 8 bits of the base
+struct GDTEntry
+{
+    uint16_t limit_low;  // Lower 16 bits of the limit
+    uint16_t base_low;   // Lower 16 bits of the base
+    uint8_t base_middle; // Middle 8 bits of the base
+    uint8_t access;      // Access byte
+    uint8_t granularity; // Granularity and higher limit
+    uint8_t base_high;   // Higher 8 bits of the base
 } __attribute__((packed));
 
-struct GDTR {
+struct GDTR
+{
     uint16_t limit;
     uint64_t base;
 } __attribute__((packed));
@@ -65,47 +68,54 @@ struct GDTR gdtr = {
     .base = (uint64_t)&gdt,
 };
 
-uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count) {
-	uint64_t mem_ptr = 0; 
-	uint64_t size = 0;
+uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count)
+{
+    uint64_t mem_ptr = 0;
+    uint64_t size = 0;
 
-	for (int i = 0; i < entry_count; ++i) {
-		if (entries[i]->type == 0 && entries[i]->length >= 0x40200000) {
-			mem_ptr = entries[i]->base;
-			size = entries[i]->length;
-			break;
-		}
-	}
+    for (int i = 0; i < entry_count; ++i)
+    {
+        if (entries[i]->type == 0 && entries[i]->length >= 0x40200000)
+        {
+            mem_ptr = entries[i]->base;
+            size = entries[i]->length;
+            break;
+        }
+    }
 
-	if (size == 0 || mem_ptr == 0) {
-		return 0;
-	}
+    if (size == 0 || mem_ptr == 0)
+    {
+        return 0;
+    }
 
-	mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
+    mem_ptr = ((mem_ptr + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
 
-	return mem_ptr;
+    return mem_ptr;
 }
 
-static int pmm_get_bit_status(int bit_number) {
-	int column, row, temp;
-	column = bit_number % 64;
-	row = bit_number >> 6;
-	temp = bitmap[row];
-	return temp & (1 << column);
+static int pmm_get_bit_status(int bit_number)
+{
+    int column, row, temp;
+    column = bit_number % 64;
+    row = bit_number >> 6;
+    temp = bitmap[row];
+    return temp & (1 << column);
 }
 
-static void pmm_set_bit_used(int bit_number) {
-	int column, row;
-	column = bit_number % 64;
-	row = bit_number >> 6;
-	bitmap[row] = bitmap[row] | 1 << column;
+static void pmm_set_bit_used(int bit_number)
+{
+    int column, row;
+    column = bit_number % 64;
+    row = bit_number >> 6;
+    bitmap[row] = bitmap[row] | 1 << column;
 }
 
-static void pmm_set_bit_free(int bit_number) {
-	int column, row;
-	column = bit_number % 64;
-	row = bit_number >> 6;
-	bitmap[row] = bitmap[row] & ~(1 << column);
+static void pmm_set_bit_free(int bit_number)
+{
+    int column, row;
+    column = bit_number % 64;
+    row = bit_number >> 6;
+    bitmap[row] = bitmap[row] & ~(1 << column);
 }
 
 uint64_t root_table_4[512] __attribute__((aligned(0x1000))) = {0};
@@ -117,125 +127,163 @@ uint64_t kernel_table_3[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_2[512] __attribute__((aligned(0x1000))) = {0};
 uint64_t kernel_table_1[512][512] __attribute__((aligned(0x1000))) = {0};
 
-__attribute__((noreturn))
-int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr) {
-  if (framebuffer_addr % PAGE_SIZE != 0) {
-    kprintf("Error: Framebuffer not aligned");
-    for (;;) {
-      asm volatile("hlt");
+__attribute__((noreturn)) int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr)
+{
+    if (framebuffer_addr % PAGE_SIZE != 0)
+    {
+        kprintf("Error: Framebuffer not aligned");
+        for (;;)
+        {
+            asm volatile("hlt");
+        }
     }
-  }
 
-	//filling page tables
-	root_table_4[256] = ((uint64_t)&high_table_3[0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
-	root_table_4[511] = ((uint64_t)&kernel_table_3 - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+    // filling page tables
+    root_table_4[256] =
+        ((uint64_t)&high_table_3[0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+    root_table_4[511] =
+        ((uint64_t)&kernel_table_3 - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
 
-	high_table_3[0] = ((uint64_t)&high_table_2[0][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
-	high_table_3[1] = ((uint64_t)&high_table_2[1][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+    high_table_3[0] =
+        ((uint64_t)&high_table_2[0][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+    high_table_3[1] =
+        ((uint64_t)&high_table_2[1][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
 
-	kernel_table_3[510] = ((uint64_t)&kernel_table_2[0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+    kernel_table_3[510] =
+        ((uint64_t)&kernel_table_2[0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
 
-	for (int i = 0; i < 512; i++) {
-		high_table_2[0][i] = (free_mem + i*PAGE_SIZE) | PT_FLAG_PRESENT | PT_FLAG_WRITE | PT_FLAG_2MB;
-		high_table_2[1][i] = (framebuffer_addr + i*PAGE_SIZE) | PT_FLAG_PRESENT | PT_FLAG_WRITE | PT_FLAG_2MB;
-		kernel_table_2[i] = ((uint64_t)&kernel_table_1[i][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
-		for (int j = 0; j < 512; j++) {
-			kernel_table_1[i][j] = (phys_kernel_addr + (i * 0x1000 * 512) + (j * 0x1000)) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
-		}
-	}
+    for (int i = 0; i < 512; i++)
+    {
+        high_table_2[0][i] = (free_mem + i * PAGE_SIZE) | PT_FLAG_PRESENT | PT_FLAG_WRITE | PT_FLAG_2MB;
+        high_table_2[1][i] = (framebuffer_addr + i * PAGE_SIZE) | PT_FLAG_PRESENT | PT_FLAG_WRITE | PT_FLAG_2MB;
+        kernel_table_2[i] =
+            ((uint64_t)&kernel_table_1[i][0] - KERNEL_OFFSET + phys_kernel_addr) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+        for (int j = 0; j < 512; j++)
+        {
+            kernel_table_1[i][j] =
+                (phys_kernel_addr + (i * 0x1000 * 512) + (j * 0x1000)) | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+        }
+    }
 
-	//loading gdtr
-	asm volatile("lgdt %0" :: "m"(gdtr));
-	//loading cr3
-	asm volatile("mov %0, %%cr3" : : "r" ((uint64_t)root_table_4 - KERNEL_OFFSET + phys_kernel_addr) : "memory");
+    // loading gdtr
+    asm volatile("lgdt %0" ::"m"(gdtr));
+    // loading cr3
+    asm volatile("mov %0, %%cr3" : : "r"((uint64_t)root_table_4 - KERNEL_OFFSET + phys_kernel_addr) : "memory");
 
-  asm volatile("mov %0, %%rsp":: "r" (HIGHER_HALF + 0x40000000 - PAGE_SIZE): "%rsp");
+    asm volatile("mov %0, %%rsp" ::"r"(HIGHER_HALF + 0x40000000 - PAGE_SIZE) : "%rsp");
 
-	ssfn_dst.ptr = (void *)(HIGHER_HALF + 0x40000000); //should point to framebuffer
+    ssfn_dst.ptr = (void *)(HIGHER_HALF + 0x40000000); // should point to framebuffer
 
-	kmain();
+    kmain();
 
-	//doesnt return 
+    // doesnt return
 }
 
 #define USED 1
 #define FREE 0
 
-struct mem_chunk {
-  void *ptr;
-  size_t size;
-  struct mem_chunk *next;
-  struct mem_chunk *prev;
-  int state;
+struct mem_chunk
+{
+    void *ptr;
+    size_t size;
+    struct mem_chunk *next;
+    struct mem_chunk *prev;
+    int state;
 };
 
 struct mem_chunk first_chunk = {
-  .ptr = (void *)HIGHER_HALF,
-  .size =  0x40000000 - PAGE_SIZE,
-  .next = NULL,
-  .prev = NULL,
-  .state = FREE,
+    .ptr = (void *)HIGHER_HALF,
+    .size = 0x40000000 - PAGE_SIZE,
+    .next = NULL,
+    .prev = NULL,
+    .state = FREE,
 };
 
-void *kalloc(size_t size) {  
-  struct mem_chunk *cur;
-  cur = &first_chunk;
+bool kalloc_used, kfree_used = false;
 
-  //parse the mem_chunk_structs
-  while (1) {
-    if (cur->size == size && cur->state == FREE) {
-      break;
+void *kalloc(size_t size)
+{
+    while (kalloc_used)
+    {
+    } // what if this is executed during task switch? //set this to false during task switch?
+    kalloc_used = true;
+    struct mem_chunk *cur;
+    cur = &first_chunk;
+
+    // parse the mem_chunk_structs
+    while (1)
+    {
+        if (cur->size == size && cur->state == FREE)
+        {
+            break;
+        }
+        if (cur->size >= size + sizeof(struct mem_chunk) && cur->state == FREE)
+        {
+            break;
+        }
+        if (cur->next != 0)
+        {
+            cur = cur->next;
+        }
+        else
+        {
+            return NULL;
+        }
     }
-    if (cur->size >= size + sizeof(struct mem_chunk) && cur->state == FREE) {
-      break;
+
+    if (cur->size == size)
+    {
+        cur->state = USED;
+        return cur->ptr;
     }
-    if (cur->next != 0) {
-      cur = cur->next;
-    } else {
-      return NULL;
+
+    struct mem_chunk *new;
+    new = cur->ptr + cur->size;
+
+    new->ptr = (void *)new + sizeof(struct mem_chunk);
+    new->size = size;
+    new->next = NULL;
+    new->prev = cur;
+    new->state = USED;
+
+    if (cur->next != NULL)
+    {
+        new->next = cur->next;
     }
-  }
 
-  if (cur->size == size) {
-    cur->state = USED;
-    return cur->ptr;
-  }
+    cur->next = new;
 
-  struct mem_chunk *new;
-  new = cur->ptr + cur->size;
-
-  new->ptr = (void *)new + sizeof(struct mem_chunk);
-  new->size = size;
-  new->next = NULL;
-  new->prev = cur;
-  new->state = USED;
-  
-  if (cur->next != NULL) {
-    new->next = cur->next;
-  }
-
-  cur->next = new;
-
-  return new->ptr;
+    kalloc_used = false;
+    return new->ptr;
 }
 
 static void merge_mem_chunks();
 
-void kfree(void *ptr) {
-  struct mem_chunk *to_delete, *prev;
-  to_delete = ptr - sizeof(struct mem_chunk);
-  prev = to_delete->prev;
-  
-  if (prev->state == USED) {
-    to_delete->state = FREE;
-  } else {
-    prev->size = to_delete->size + sizeof(struct mem_chunk);
-    prev->next = to_delete->next;
-  }
+void kfree(void *ptr)
+{
+    while (kfree_used)
+    {
+    } // what if this is executed during task switch? //set this to false during task switch?
+    kfree_used = true;
+    struct mem_chunk *to_delete, *prev;
+    to_delete = ptr - sizeof(struct mem_chunk);
+    prev = to_delete->prev;
 
-  merge_mem_chunks();
+    if (prev->state == USED)
+    {
+        to_delete->state = FREE;
+    }
+    else
+    {
+        prev->size = to_delete->size + sizeof(struct mem_chunk);
+        prev->next = to_delete->next;
+    }
+
+    merge_mem_chunks();
+    kfree_used = false;
 }
 
-static void merge_mem_chunks() {
-  //TODO: look for fragmentation in the mem chunks
+static void merge_mem_chunks()
+{
+    // TODO: look for fragmentation in the mem chunks
 }
