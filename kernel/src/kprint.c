@@ -84,10 +84,10 @@ int kprintf(const char *restrict format, ...)
                 return -1;
             written += len;
         }
-        else if (*format == 'u')
+        else if (*format == 'd')
         {
             format++;
-            uint64_t original, reversed, remainder, size = 0;
+            int original = 0, reversed = 0, remainder = 0, size = 0;
             char c;
             original = va_arg(parameters, int);
             if (original == 0)

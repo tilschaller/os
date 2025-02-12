@@ -199,14 +199,8 @@ struct mem_chunk first_chunk = {
     .state = FREE,
 };
 
-bool kalloc_used, kfree_used = false;
-
 void *kalloc(size_t size)
 {
-    while (kalloc_used)
-    {
-    } // what if this is executed during task switch? //set this to false during task switch?
-    kalloc_used = true;
     struct mem_chunk *cur;
     cur = &first_chunk;
 
@@ -253,7 +247,6 @@ void *kalloc(size_t size)
 
     cur->next = new;
 
-    kalloc_used = false;
     return new->ptr;
 }
 
@@ -261,10 +254,6 @@ static void merge_mem_chunks();
 
 void kfree(void *ptr)
 {
-    while (kfree_used)
-    {
-    } // what if this is executed during task switch? //set this to false during task switch?
-    kfree_used = true;
     struct mem_chunk *to_delete, *prev;
     to_delete = ptr - sizeof(struct mem_chunk);
     prev = to_delete->prev;
@@ -280,7 +269,6 @@ void kfree(void *ptr)
     }
 
     merge_mem_chunks();
-    kfree_used = false;
 }
 
 static void merge_mem_chunks()

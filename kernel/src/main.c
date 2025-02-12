@@ -10,7 +10,6 @@
 #include <int.h>
 #include <kstdio.h>
 #include <mman.h>
-#include <process_scheduler.h>
 
 #include <string.h>
 
@@ -99,8 +98,6 @@ __attribute__((noreturn)) void kmain_early(void)
     hcf();
 }
 
-struct process kernel_task;
-
 void multitasking_test()
 {
     kprintf("Multitasking is working!");
@@ -117,18 +114,8 @@ __attribute__((noreturn)) void kmain()
         hcf();
     }
 
-    kprintf("Interrupts enabled\n");
-
-    struct registers kernel_regs;
-    fetch_registers(&kernel_regs);
-
-    kernel_task.regs = kernel_regs;
-    kernel_task.execution_ptr = hcf;
-    kernel_task.next = NULL;
-
     asm volatile("sti");
-
-    create_process(multitasking_test, kalloc(100), (void *)kernel_task.regs.cr3); // just to test Multitasking
+    kprintf("Interrupts enabled\n");
 
     hcf();
 }

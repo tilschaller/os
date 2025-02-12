@@ -1,6 +1,5 @@
 #include <int.h>
 #include <kstdio.h>
-#include <process_scheduler.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -143,17 +142,18 @@ int init_int()
 
 void exception_handler()
 {
-    kprintf("Fatal error occured - halting");
-    __asm__ volatile("cli; hlt"); // Completely hangs the computer
+    kprintf("Fatal error occured - halting\n");
+    asm volatile("cli; hlt"); // Completely hangs the computer
 }
 
 void keyboard_input_handler()
 {
     uint8_t scancode = inb(0x60);
 
-    // if (scancode <= 0x80) {
-    //  kprintf("Pressed key\n");
-    // }
+    if (scancode <= 0x80)
+    {
+        kprintf("Pressed key\n");
+    }
 
     outb(PIC1_COMMAND, PIC_EOI);
 
@@ -162,15 +162,9 @@ void keyboard_input_handler()
 
 uint64_t time_since_boot = 0; // time since boot in milliseconds
 
-extern struct process kernel_task;
-
 void system_timer_handler()
 {
     time_since_boot += 10;
-
-    if (kernel_task.next != NULL)
-    {
-    }
 
     outb(PIC1_COMMAND, PIC_EOI);
 }

@@ -16,7 +16,7 @@ CC := clang
 AR := ar
 
 # User controllable C flags.
-CFLAGS := -ggdb -pipe
+CFLAGS := -ggdb -pipe -O2
 
 # User controllable C preprocessor flags. We set none by default.
 CPPFLAGS :=
@@ -66,7 +66,7 @@ override CFLAGS += \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
-    -I src \
+    -I src/header \
     -isystem freestnd-c-hdrs-0bsd \
     $(CPPFLAGS) \
     -DLIMINE_API_REVISION=2 \
@@ -143,7 +143,7 @@ clean:
 # Remove everything built and generated including downloaded dependencies.
 .PHONY: distclean
 distclean: clean
-	rm -rf freestnd-c-hdrs-0bsd cc-runtime src/limine.h
+	rm -rf freestnd-c-hdrs-0bsd cc-runtime src/header/limine.h
 
 # Install the final built executable to its final on-root location.
 .PHONY: install

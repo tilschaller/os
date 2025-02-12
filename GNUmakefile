@@ -8,7 +8,7 @@ QEMUFLAGS := -m 4G
 override IMAGE_NAME := tos
 
 # Toolchain for building the 'limine' executable for the host.
-HOST_CC := cc
+HOST_CC := clang
 HOST_CFLAGS := -g -O2 -pipe
 HOST_CPPFLAGS :=
 HOST_LDFLAGS :=
@@ -128,3 +128,8 @@ distclean: clean
 .PHONY: write-to-usb
 write-to-usb: $(IMAGE_NAME).iso
 	sudo dd if=$(IMAGE_NAME).iso of=/dev/sda1 bs=1M status=progress
+
+.PHONY: gen_comp_cmd
+gen_comp_cmd:
+	make clean
+	bear -- make
