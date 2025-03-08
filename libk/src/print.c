@@ -1,32 +1,24 @@
 #include <limits.h>
+#include <ssfn.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <kstdio.h>
+#include <stdio.h>
 #include <string.h>
-
-#include <ssfn.h>
 
 static bool print(const char *data, size_t length)
 {
     const unsigned char *bytes = (const unsigned char *)data;
     for (size_t i = 0; i < length; i++)
-    {
-        if (bytes[i] == '\n')
-        {
-            ssfn_dst.y += 20;
-            ssfn_dst.x = 0;
-        }
-        if (ssfn_putc(bytes[i]) == EOF)
+        if (putchar(bytes[i]) == EOF)
             return false;
-    }
     return true;
 }
 
-int kprintf(const char *restrict format, ...)
+int printk(const char *format, ...)
 {
+
     va_list parameters;
     va_start(parameters, format);
 
@@ -84,35 +76,6 @@ int kprintf(const char *restrict format, ...)
                 return -1;
             written += len;
         }
-        else if (*format == 'd')
-        {
-            format++;
-            int original = 0, reversed = 0, remainder = 0, size = 0;
-            char c;
-            original = va_arg(parameters, int);
-            if (original == 0)
-            {
-                c = (char)0x30;
-                print(&c, 1);
-                goto printf_d_end;
-            }
-            while (original)
-            {
-                remainder = original % 10;
-                reversed = reversed * 10 + remainder;
-                original /= 10;
-                size++;
-            }
-            for (original = 0; original < size; ++original)
-            {
-                c = (reversed % 10) + '0';
-                print(&c, 1);
-                reversed /= 10;
-            }
-        printf_d_end:
-            size = 0;
-            // TODO: fix printing integers
-        }
         else
         {
             format = format_begun_at;
@@ -131,4 +94,24 @@ int kprintf(const char *restrict format, ...)
 
     va_end(parameters);
     return written;
+}
+int putchar(char ch)
+{
+    if (ch == '\n')
+    {
+        ssfn_dst.x = 0;
+        ssfn_dst.y += 20;
+    }
+    ssfn_putc(ch);
+    return 0;
+}
+int puts(const char *string)
+{
+    int i = 0;
+    while (string[i] != '\0')
+    {
+        putchar((uint32_t)string[i]);
+        i++;
+    }
+    return 0;
 }

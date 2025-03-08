@@ -1,7 +1,7 @@
 #include <int.h>
-#include <kstdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 extern void hcf();
 
@@ -11,15 +11,15 @@ void system_timer_handler(void);
 
 struct IDTEntry
 {
-    uint16_t offset_low;   // Lower 16 bits of the handler function address
-    uint16_t selector;     // Code segment selector in the GDT
-    uint8_t ist : 3;       // Interrupt Stack Table (0 if not used)
-    uint8_t zero : 5;      // Reserved (set to 0)
-    uint8_t type_attr;     // Type and attributes (e.g., interrupt gate, DPL, present)
-    uint16_t offset_mid;   // Middle 16 bits of the handler function address
-    uint32_t offset_high;  // Higher 32 bits of the handler function address (64-bit mode only)
-    uint32_t reserved;     // Reserved (set to 0)
-} __attribute__((packed)); // Ensure no padding is added
+    uint16_t offset_low;
+    uint16_t selector;
+    uint8_t ist : 3;
+    uint8_t zero : 5;
+    uint8_t type_attr;
+    uint16_t offset_mid;
+    uint32_t offset_high;
+    uint32_t reserved;
+} __attribute__((packed));
 
 struct IDTR
 {
@@ -39,14 +39,14 @@ extern void *isr_stub_table[];
 void set_idt_entry(int vector, void (*handler)(), uint16_t selector, uint8_t type_attr)
 {
     uint64_t handler_address = (uint64_t)handler;
-    idt[vector].offset_low = handler_address & 0xFFFF;              // Lower 16 bits
-    idt[vector].selector = selector;                                // Code segment selector
-    idt[vector].ist = 0;                                            // No special IST
-    idt[vector].zero = 0;                                           // Reserved
-    idt[vector].type_attr = type_attr;                              // Type and attributes
-    idt[vector].offset_mid = (handler_address >> 16) & 0xFFFF;      // Middle 16 bits
-    idt[vector].offset_high = (handler_address >> 32) & 0xFFFFFFFF; // Higher 32 bits
-    idt[vector].reserved = 0;                                       // Reserved
+    idt[vector].offset_low = handler_address & 0xFFFF;
+    idt[vector].selector = selector;
+    idt[vector].ist = 0;
+    idt[vector].zero = 0;
+    idt[vector].type_attr = type_attr;
+    idt[vector].offset_mid = (handler_address >> 16) & 0xFFFF;
+    idt[vector].offset_high = (handler_address >> 32) & 0xFFFFFFFF;
+    idt[vector].reserved = 0;
 }
 
 static inline void outb(uint16_t port, uint8_t val)
@@ -73,52 +73,45 @@ static inline void io_wait(void)
 #define PIC2_COMMAND PIC2
 #define PIC2_DATA (PIC2 + 1)
 
-#define PIC_EOI 0x20 /* End-of-interrupt command code */
+#define PIC_EOI 0x20
 
-#define ICW1_ICW4 0x01      /* Indicates that ICW4 will be present */
-#define ICW1_SINGLE 0x02    /* Single (cascade) mode */
-#define ICW1_INTERVAL4 0x04 /* Call address interval 4 (8) */
-#define ICW1_LEVEL 0x08     /* Level triggered (edge) mode */
-#define ICW1_INIT 0x10      /* Initialization - required! */
+#define ICW1_ICW4 0x01
+#define ICW1_SINGLE 0x02
+#define ICW1_INTERVAL4 0x04
+#define ICW1_LEVEL 0x08
+#define ICW1_INIT 0x10
 
-#define ICW4_8086 0x01       /* 8086/88 (MCS-80/85) mode */
-#define ICW4_AUTO 0x02       /* Auto (normal) EOI */
-#define ICW4_BUF_SLAVE 0x08  /* Buffered mode/slave */
-#define ICW4_BUF_MASTER 0x0C /* Buffered mode/master */
-#define ICW4_SFNM 0x10       /* Special fully nested (not) */
+#define ICW4_8086 0x01
+#define ICW4_AUTO 0x02
+#define ICW4_BUF_SLAVE 0x08
+#define ICW4_BUF_MASTER 0x0C
+#define ICW4_SFNM 0x10
 
-/*
-arguments:
-    offset1 - vector offset for master PIC
-        vectors on the master become offset1..offset1+7
-    offset2 - same for slave PIC: offset2..offset2+7
-*/
 void PIC_remap(int offset1, int offset2)
 {
 
-    outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4); // starts the initialization sequence (in cascade mode)
+    outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
-    outb(PIC1_DATA, offset1); // ICW2: Master PIC vector offset
+    outb(PIC1_DATA, offset1);
     io_wait();
-    outb(PIC2_DATA, offset2); // ICW2: Slave PIC vector offset
+    outb(PIC2_DATA, offset2);
     io_wait();
-    outb(PIC1_DATA, 4); // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+    outb(PIC1_DATA, 4);
     io_wait();
-    outb(PIC2_DATA, 2); // ICW3: tell Slave PIC its cascade identity (0000 0010)
+    outb(PIC2_DATA, 2);
     io_wait();
 
-    outb(PIC1_DATA, ICW4_8086); // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+    outb(PIC1_DATA, ICW4_8086);
     io_wait();
     outb(PIC2_DATA, ICW4_8086);
     io_wait();
 
-    outb(0x36, 0x43); // 0x36 is the control word, 0x43 is the command port
+    outb(0x36, 0x43);
 
-    // Set the divisor for 100 Hz (divisor = 11931)
-    outb(0x1F, 0x40); // Low byte
-    outb(0x2E, 0x40); // High byte
+    outb(0x1F, 0x40);
+    outb(0x2E, 0x40);
 
     outb(PIC1_DATA, ~(0x03));
     outb(PIC2_DATA, ~(0x00));
@@ -142,18 +135,13 @@ int init_int()
 
 void exception_handler()
 {
-    kprintf("Fatal error occured - halting\n");
+    printk("Fatal error occured - halting\n");
     asm volatile("cli; hlt"); // Completely hangs the computer
 }
 
 void keyboard_input_handler()
 {
     uint8_t scancode = inb(0x60);
-
-    if (scancode <= 0x80)
-    {
-        kprintf("Pressed key\n");
-    }
 
     outb(PIC1_COMMAND, PIC_EOI);
 

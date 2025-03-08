@@ -8,8 +8,8 @@
 #include <ssfn.h>
 
 #include <int.h>
-#include <kstdio.h>
 #include <mman.h>
+#include <stdio.h>
 
 #include <string.h>
 
@@ -77,45 +77,39 @@ __attribute__((noreturn)) void kmain_early(void)
     ssfn_dst.x = ssfn_dst.y = 0;
     ssfn_dst.fg = 0xFFFFFF;
 
-    kprintf("---------------------\n");
-    kprintf("---Starting kernel---\n");
-    kprintf("---------------------\n\n");
+    printk("---------------------\n");
+    printk("---Starting kernel---\n");
+    printk("---------------------\n\n");
 
-    kprintf("Initializing Memory Manager\n");
+    printk("Initializing Memory Manager\n");
 
     uint64_t free_mem = find_mem(entries, entry_count);
     if (free_mem == 0)
     {
-        kprintf("Failed to find suitable RAM");
+        printk("Failed to find suitable RAM");
         hcf();
     }
 
     if (init_paging(free_mem, (uint64_t)framebuffer->address - limine_hhdm_offset, phys_kernel_addr) != 0)
     {
-        kprintf("Error when enabling paging");
+        printk("Error when enabling paging");
         hcf();
     }
     hcf();
 }
 
-void multitasking_test()
-{
-    kprintf("Multitasking is working!");
-    // CLOSE THREAD
-}
-
 __attribute__((noreturn)) void kmain()
 {
-    kprintf("Early setup finished, now inside kmain\n");
+    printk("Early setup finished, now inside kmain\n");
 
     if (init_int() != 0)
     {
-        kprintf("Failed to set up IDT");
+        printk("Failed to set up IDT");
         hcf();
     }
 
     asm volatile("sti");
-    kprintf("Interrupts enabled\n");
+    printk("Interrupts enabled\n");
 
     hcf();
 }

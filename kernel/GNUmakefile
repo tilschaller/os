@@ -29,7 +29,7 @@ LDFLAGS :=
 
 # Ensure the dependencies have been obtained.
 ifneq ($(shell ( test '$(MAKECMDGOALS)' = clean || test '$(MAKECMDGOALS)' = distclean ); echo $$?),0)
-    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f src/limine.h ); echo $$?),0)
+    ifeq ($(shell ( ! test -d freestnd-c-hdrs-0bsd || ! test -d cc-runtime || ! test -f headers/limine.h ); echo $$?),0)
         $(error Please run the ./get-deps script first)
     endif
 endif
@@ -66,7 +66,8 @@ override CFLAGS += \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
-    -I src/header \
+    -I headers \
+		-I ../libk/headers/ \
     -isystem freestnd-c-hdrs-0bsd \
     $(CPPFLAGS) \
     -DLIMINE_API_REVISION=2 \
@@ -118,7 +119,7 @@ cc-runtime-x86_64/cc-runtime.a: GNUmakefile cc-runtime/*
 # Link rules for the final executable.
 bin/$(OUTPUT): GNUmakefile linker.ld $(OBJ) cc-runtime-x86_64/cc-runtime.a
 	mkdir -p "$$(dirname $@)"
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) $(FONT_FILES) cc-runtime-x86_64/cc-runtime.a -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) $(FONT_FILES) cc-runtime-x86_64/cc-runtime.a -o $@ -L../libk/bin -l:libk.a
 
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c GNUmakefile
@@ -143,16 +144,4 @@ clean:
 # Remove everything built and generated including downloaded dependencies.
 .PHONY: distclean
 distclean: clean
-	rm -rf freestnd-c-hdrs-0bsd cc-runtime src/header/limine.h
-
-# Install the final built executable to its final on-root location.
-.PHONY: install
-install: all
-	install -d "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"
-	install -m 644 bin/$(OUTPUT) "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/"
-
-# Try to undo whatever the "install" target did.
-.PHONY: uninstall
-uninstall:
-	rm -f "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)/$(OUTPUT)"
-	-rmdir "$(DESTDIR)$(PREFIX)/share/$(OUTPUT)"
+	rm -rf freestnd-c-hdrs-0bsd cc-runtime headers/limine.h

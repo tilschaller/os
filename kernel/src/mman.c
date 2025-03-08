@@ -1,10 +1,10 @@
-#include <kstdio.h>
 #include <limine.h>
 #include <mman.h>
 #include <ssfn.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #define PAGE_SIZE 0x200000
 #define HIGHER_HALF 0xffff800000000000
@@ -131,7 +131,7 @@ __attribute__((noreturn)) int init_paging(uint64_t free_mem, uint64_t framebuffe
 {
     if (framebuffer_addr % PAGE_SIZE != 0)
     {
-        kprintf("Error: Framebuffer not aligned");
+        printk("Error: Framebuffer not aligned");
         for (;;)
         {
             asm volatile("hlt");

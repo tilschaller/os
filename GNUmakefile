@@ -82,8 +82,16 @@ kernel-deps:
 	./kernel/get-deps
 	touch kernel-deps
 
+libk-deps:
+	./libk/get-deps
+	touch libk-deps
+
+.PHONY: libk.a
+libk.a: libk-deps
+	$(MAKE) -C libk
+
 .PHONY: kernel
-kernel: kernel-deps
+kernel: kernel-deps libk.a
 	$(MAKE) -C kernel
 
 $(IMAGE_NAME).iso: limine/limine kernel
@@ -123,13 +131,9 @@ clean:
 .PHONY: distclean
 distclean: clean
 	$(MAKE) -C kernel distclean
-	rm -rf kernel-deps limine ovmf
-
-.PHONY: write-to-usb
-write-to-usb: $(IMAGE_NAME).iso
-	sudo dd if=$(IMAGE_NAME).iso of=/dev/sda1 bs=1M status=progress
+	rm -rf kernel-deps limine ovmf libk-deps
 
 .PHONY: gen_comp_cmd
 gen_comp_cmd:
-	make clean
-	bear -- make
+	$(MAKE) clean
+	bear -- $(MAKE)

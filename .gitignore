@@ -1,4 +1,5 @@
 /kernel-deps
+/libk-deps
 /limine
 /ovmf
 *.iso
