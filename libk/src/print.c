@@ -1,3 +1,4 @@
+#define SSFN_CONSOLEBITMAP_TRUECOLOR
 #include <limits.h>
 #include <ssfn.h>
 #include <stdarg.h>
@@ -14,6 +15,24 @@ static bool print(const char *data, size_t length)
         if (putchar(bytes[i]) == EOF)
             return false;
     return true;
+}
+
+static char *convert(unsigned int num, int base) 
+{ 
+    static char Representation[]= "0123456789ABCDEF";
+    static char buffer[50]; 
+    char *ptr; 
+
+    ptr = &buffer[49]; 
+    *ptr = '\0'; 
+
+    do 
+    { 
+        *--ptr = Representation[num%base]; 
+        num /= base; 
+    }while(num != 0); 
+
+    return(ptr); 
 }
 
 int printk(const char *format, ...)
@@ -76,6 +95,23 @@ int printk(const char *format, ...)
                 return -1;
             written += len;
         }
+        else if (*format == 'd')
+        {
+          format++;
+          int i = va_arg(parameters, int);
+          if(i<0) 
+          { 
+            i = -i;
+            putchar('-'); 
+          } 
+          puts(convert(i,10));
+          //TODO: add written characters to written
+        }
+        else if (*format == 'x') {
+          format++;
+          uint64_t i = va_arg(parameters, uint64_t);
+          puts(convert(i, 16));
+        } 
         else
         {
             format = format_begun_at;

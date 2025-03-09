@@ -1,15 +1,9 @@
-#include <limine.h>
-#include <stddef.h>
+#ifndef __MMAN_H__
+#define __MMAN_H__
 
-#ifndef _MMAN_H_
-#define _MMAN_H_
+#define PAGE_SIZE 0x200000 // huge pages only
 
-uint64_t find_mem(struct limine_memmap_entry **entries, int entry_count);
-int init_paging(uint64_t free_mem, uint64_t framebuffer_addr, uint64_t phys_kernel_addr);
-// int init_vmm();
-//
+__attribute__((noreturn))
+void init_mman();
 
-void *kalloc(size_t size);
-void kfree(void *ptr);
-
-#endif
+#endif // !__MMAN_H__

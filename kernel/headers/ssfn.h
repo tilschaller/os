@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 /*
  * ssfn.h
  * https://gitlab.com/bztsrc/scalable-font2
@@ -1845,7 +1847,7 @@ extern "C"
                                         dB = fB;
                                         dG = fG;
                                         dR = fR;
-                                        dA = fA;
+                                        dA = fA#define SSFN_CONSOLEBITMAP_TRUECOLOR;
                                     }
                                     else
                                     {
@@ -2013,7 +2015,7 @@ extern "C"
                                             dst->x += y;
                                         else
                                             dst->y += y;
-                                        break;
+                                        break;#define SSFN_CONSOLEBITMAP_TRUECOLOR
                                     }
                                 }
                                 break;
@@ -2058,7 +2060,7 @@ extern "C"
             return SSFN_ERR_INVINP;
         if (w)
         {
-            *w = 0;
+            *w = 0;#define SSFN_CONSOLEBITMAP_TRUECOLOR
         }
         if (h)
         {
@@ -2121,7 +2123,7 @@ extern "C"
             }
         }
         else
-        {
+        {#define SSFN_CONSOLEBITMAP_TRUECOLOR
             if (w)
             {
                 *w = buf.w;

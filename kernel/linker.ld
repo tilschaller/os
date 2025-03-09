@@ -24,7 +24,7 @@ SECTIONS
     . = 0xffffffff80000000;
 
     /* Define a section to contain the Limine requests and assign it to its own PHDR */
-    .limine_requests : {
+    .limine_requests : AT (0x200000) {
         KEEP(*(.limine_requests_start))
         KEEP(*(.limine_requests))
         KEEP(*(.limine_requests_end))
@@ -33,21 +33,21 @@ SECTIONS
     /* Move to the next memory page for .text */
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
-    .text : {
+    .text : AT (LOADADDR(.limine_requests) + ALIGN(SIZEOF(.limine_requests), CONSTANT(MAXPAGESIZE))) {
         *(.text .text.*)
     } :text
 
     /* Move to the next memory page for .rodata */
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
-    .rodata : {
+    .rodata : AT (LOADADDR(.text) + ALIGN(SIZEOF(.text), CONSTANT(MAXPAGESIZE))) {
         *(.rodata .rodata.*)
     } :rodata
 
     /* Move to the next memory page for .data */
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
-    .data : {
+    .data : AT (LOADADDR(.rodata) + ALIGN(SIZEOF(.rodata), CONSTANT(MAXPAGESIZE))) {
         *(.data .data.*)
     } :data
 
