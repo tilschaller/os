@@ -7,6 +7,7 @@
 #include <mman.h>
 #include <stdio.h>
 #include <string.h>
+#include <gdt.h>
 
 __attribute__((used, section(".limine_requests"))) 
 static volatile LIMINE_BASE_REVISION(3);
@@ -53,6 +54,8 @@ void kmain_early(void) {
   printk("---------------------\n");
   printk("---Starting kernel---\n");
   printk("---------------------\n\n");
+
+  init_gdt();
 
   init_mman(); 
   // control continues from init_mman()

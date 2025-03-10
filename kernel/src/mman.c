@@ -21,6 +21,10 @@ static volatile struct limine_executable_address_request exe_addr_request = {
   .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST, 
   .revision = 0};
 
+static void init_pmm();
+static void init_vmm();
+static void init_paging();
+
 void init_mman() {
   // first find a suitable RAM segment
   // SIZE: 8MB
@@ -52,7 +56,23 @@ void init_mman() {
     printk("Its at: %x\n", exe_addr_request.response->physical_base);
   }
 
+  init_pmm();
+  init_vmm();
+  init_paging();
+
   extern __attribute__((noreturn))
   void kmain();
   kmain();
+}
+
+void init_pmm() {
+
+}
+
+void init_vmm() {
+
+}
+
+void init_paging() {
+
 }

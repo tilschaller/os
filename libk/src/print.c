@@ -110,6 +110,7 @@ int printk(const char *format, ...)
         else if (*format == 'x') {
           format++;
           uint64_t i = va_arg(parameters, uint64_t);
+          puts("0x");
           puts(convert(i, 16));
         } 
         else
