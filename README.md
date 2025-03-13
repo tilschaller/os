@@ -5,10 +5,10 @@ Run in qemu with make run-qemu
 Write to usb with make write-to-usb
 
 Currently working
-- Memory manager
-- Interrupts
 - Framebuffer / Printing text
   
 What to do next:
+- Memory manager
+- interrupts
 - Multitasking 
 - Userspace

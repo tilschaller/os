@@ -74,5 +74,11 @@ void init_vmm() {
 }
 
 void init_paging() {
-
+  //layout of paging table
+  //                   HIGHER_HALF                                     KERNEL_SPACE                                      
+  //|---------1GB------------2MB---------2MB-----------------| |----------1GB----------------------------|
+  //|   framebuffer    |    stack    |   mman objects        | |     kernel            |   free          |
+  //|----------------------------------------------------------------------------------------------------|
+  
+  
 }
