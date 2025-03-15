@@ -5,3 +5,5 @@
 *.iso
 *.hdd
 /.cache
+/2
+/compile_commands.json
