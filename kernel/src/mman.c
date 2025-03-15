@@ -111,11 +111,10 @@ void init_pmm(uintptr_t phys_mem) {
   }
   cur->next = NULL;
 
-  // filling the bitmaps - we need to reserve space for: 
+  // filling the bitmaps - we need to reserve space for: (4 Pages) 
   // - stack (2MB)
   // - mman objects (2MB)
   // - page tables (4 MB)
-  // - reserver 
   // - kernel and framebuffer dont need to be mapped
   cur = (struct pm_chunk*)(phys_mem + 3*PAGE_SIZE + hhdm_request.response->offset);
   while (true) {
@@ -124,6 +123,7 @@ void init_pmm(uintptr_t phys_mem) {
       pmm_set_page_used(cur->bitmap, 2);
       pmm_set_page_used(cur->bitmap, 3);
       pmm_set_page_used(cur->bitmap, 4);
+      cur = NULL;
       break;
     }
     if (cur->next != NULL) {
@@ -131,6 +131,10 @@ void init_pmm(uintptr_t phys_mem) {
     } else {
       break; 
     }
+  }
+  if (cur != NULL) {
+    printk("Error: could not fill bitmaps in pmm_init\n");
+    abort();
   }
 }
 
