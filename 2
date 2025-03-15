@@ -6,7 +6,6 @@
 #include <limine.h>
 #include <ssfn.h>
 #include <string.h>
-#include <stdbool.h>
 
 __attribute__((used, section(".limine_requests"))) 
 static volatile struct limine_memmap_request memmap_request = {
@@ -89,47 +88,20 @@ void init_mman() {
 void init_pmm(uintptr_t phys_mem) {
   // creating first pm_chunk object at the reserved space
   struct pm_chunk *cur = (struct pm_chunk*)(phys_mem + 3*PAGE_SIZE + hhdm_request.response->offset);
+  //TODO: use  this variable to find adjacent memory segment
+  uintptr_t prev_end = 0;
 
   // parsing the memmap
   for (uint64_t i = 0; i < memmap_request.response->entry_count; i++) {
     if (memmap_request.response->entries[i]->type == LIMINE_MEMMAP_USABLE || memmap_request.response->entries[i]->type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE) { 
       if (memmap_request.response->entries[i]->length >= PAGE_SIZE) {
       
-        cur->base = memmap_request.response->entries[i]->base;
-        if (cur->base % PAGE_SIZE != 0) {
-          cur->base = ((cur->base + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
-        }
-        size_t length = memmap_request.response->entries[i]->length - (cur->base - memmap_request.response->entries[i]->base);
-        if (length < PAGE_SIZE) {
-          continue;
-        }
-        cur->pages = length >> 21;
-        cur->next = (struct pm_chunk*)((uintptr_t)cur + sizeof(struct pm_chunk) + sizeof(uint8_t) * (cur->pages + 7 >> 3));
-        cur = cur->next;
+        cur->base = ((memmap_request.response->entries[i]->base + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
+      
+        printk("cur->bas: %x\n", cur->base);
+        printk("cur->next: %d\n", cur->next);
+        printk("cur->pages: %d\n", cur->pages);
       }
-    }
-  }
-  cur->next = NULL;
-
-  // filling the bitmaps - we need to reserve space for: 
-  // - stack (2MB)
-  // - mman objects (2MB)
-  // - page tables (4 MB)
-  // - reserver 
-  // - kernel and framebuffer dont need to be mapped
-  cur = (struct pm_chunk*)(phys_mem + 3*PAGE_SIZE + hhdm_request.response->offset);
-  while (true) {
-    if (cur->base == phys_mem) {
-      pmm_set_page_used(cur->bitmap, 1);
-      pmm_set_page_used(cur->bitmap, 2);
-      pmm_set_page_used(cur->bitmap, 3);
-      pmm_set_page_used(cur->bitmap, 4);
-      break;
-    }
-    if (cur->next != NULL) {
-      cur = cur->next;
-    } else {
-      break; 
     }
   }
 }
@@ -177,12 +149,4 @@ void init_paging(uintptr_t phys_mem) {
       ptl_1_krn[512*i+j] = exe_addr_request.response->physical_base + (0x1000 * (512*i+j)) | PT_FLAG_WRITE | PT_FLAG_PRESENT;
     }
   }
-}
-
-void pmm_set_page_used(uint8_t *bitmap_entry, int bit) {
-  *bitmap_entry = *bitmap_entry | 1 << bit; 
-}
-
-void pmm_set_page_free(uint8_t *bitmap_entry, int bit) {
-  *bitmap_entry = *bitmap_entry & ~ (1 << bit); 
 }
