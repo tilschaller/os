@@ -21,8 +21,12 @@ struct pm_chunk {
   uint8_t bitmap[];
 };
 
+#define PMM_PAGE_USED 1
+#define PMM_PAGE_FREE 0
+
 void pmm_set_page_used(uint8_t *bitmap_entry, int bit);
 void pmm_set_page_free(uint8_t *bitmap_entry, int bit);
+int pmm_get_page_status(uint8_t *bitmap_entry, int bit);
 
 struct vm_chunk{
   uintptr_t base;
@@ -30,6 +34,12 @@ struct vm_chunk{
   uint64_t flags;
   struct vm_chunk *next;
 };
+
+void* vmm_alloc(size_t length, uint64_t flags, void* arg);
+void map_memory(void* root_table, void* phys, void* virt, uint64_t flags);
+
+int vmm_get_page_status(uint64_t *pt_index);
+
 __attribute__((noreturn))
 void init_mman();
 
