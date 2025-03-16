@@ -26,7 +26,9 @@ static volatile struct limine_executable_address_request exe_addr_request = {
 static void init_pmm(uintptr_t phys_mem);
 static void init_paging(uintptr_t phys_mem);
 // waterbucket like allocator
-size_t pt_mem_addr = 0;
+size_t pt_mem_offset = 0;
+uintptr_t pt_phys_start = 0;
+uintptr_t pt_virt_start = HIGHER_HALF + 0x40000000 - 4*PAGE_SIZE;
 
 void init_mman() {
   // first find a suitable RAM segment
@@ -80,8 +82,6 @@ void init_mman() {
   asm("mov %0, %%rsp" ::"r"(HIGHER_HALF + 0x40000000 - 2*PAGE_SIZE) : "%rsp");
 
   ssfn_dst.ptr = (void*)HIGHER_HALF;
-
-  pt_mem_addr += HIGHER_HALF + 0x40000000 - 4*PAGE_SIZE; 
 
   extern __attribute__((noreturn))
   void kmain();
@@ -149,6 +149,7 @@ void init_paging(uintptr_t phys_mem) {
   //| phys_framebuffer | void* phys_mem                                           | |phys_kernel_base                         |
   
   uint64_t offset = hhdm_request.response->offset;
+  pt_phys_start = phys_mem;
   phys_mem += offset; // at this point its actually virtual
 
   uint64_t *ptl_4 = (uint64_t*)phys_mem;  
@@ -157,7 +158,7 @@ void init_paging(uintptr_t phys_mem) {
   uint64_t *ptl_2_hh = (uint64_t*)(phys_mem + sizeof(uint64_t) * 1536);
   uint64_t *ptl_2_krn = (uint64_t*)(phys_mem + sizeof(uint64_t) * 2048);
   uint64_t *ptl_1_krn = (uint64_t*)(phys_mem + sizeof(uint64_t) * 3072);
-  pt_mem_addr = sizeof(uint64_t) * (3072 + 512 * 512);  
+  pt_mem_offset = sizeof(uint64_t) * (3072 + 512 * 512);  
 
   // mapping frambuffer 
   ptl_4[256] = (uintptr_t)ptl_3_hh - offset | PT_FLAG_WRITE | PT_FLAG_PRESENT;
@@ -181,10 +182,10 @@ void init_paging(uintptr_t phys_mem) {
     }
   }
 
-  // mapping pt
+  // mapping pt using recursive paging
   ptl_2_hh[508] = (uintptr_t) phys_mem - offset | PT_FLAG_WRITE | PT_FLAG_PRESENT | PT_FLAG_2MB;
   ptl_2_hh[509] = (uintptr_t) phys_mem - offset + PAGE_SIZE | PT_FLAG_WRITE | PT_FLAG_PRESENT | PT_FLAG_2MB;
-}
+} 
 
 void pmm_set_page_used(uint8_t *bitmap_entry, int bit) {
   *bitmap_entry = *bitmap_entry | 1 << bit; 
@@ -202,6 +203,9 @@ int vmm_get_page_status(uint64_t *pt_index) {
   return *pt_index & 0b1;
 }
 
+// i hate this function
+// rewrite when adding userspace
+// TODO: add proper allocation for page tables and add unmap function
 void map_memory(void *root_table, void *phys, void *virt, uint64_t flags) {
   uint64_t ptl_4_index = ((uintptr_t)virt >> 39) & 0x1FF;
   uint64_t ptl_3_index = ((uintptr_t)virt >> 30) & 0x1FF;
@@ -211,28 +215,31 @@ void map_memory(void *root_table, void *phys, void *virt, uint64_t flags) {
   uint64_t *ptl_3;
   uint64_t *ptl_2;
 
-  //TODO: make virtual address from retrieved virtual address 
-  //      write new page into pt
   if (vmm_get_page_status(&ptl_4[ptl_4_index])) {
     ptl_3 = (uint64_t*)(ptl_4[ptl_4_index] & ~0xFFF);
+    ptl_3 = ptl_3 + pt_virt_start - pt_phys_start;
   } else {
-    ptl_3 = (uint64_t*)pt_mem_addr;
-    pt_mem_addr += sizeof(uint64_t) * 512;
-    if (pt_mem_addr > HIGHER_HALF + 0x40000000 - 2*PAGE_SIZE) {
+    ptl_3 = (uint64_t*)(pt_mem_offset + pt_virt_start);
+    ptl_4[ptl_4_index] = pt_mem_offset + pt_phys_start | PT_FLAG_WRITE | PT_FLAG_PRESENT; 
+    pt_mem_offset += sizeof(uint64_t) * 512;
+    if (pt_mem_offset > 2*PAGE_SIZE) {
       printk("FIXME: space for page tables is full\n");
       abort();
     }
   }
+
   if (vmm_get_page_status(&ptl_3[ptl_3_index])) {
       ptl_2 = (uint64_t*)(ptl_3[ptl_3_index] & ~0xFFF);
+      ptl_2 = ptl_3 + pt_virt_start - pt_phys_start;
     } else {
-      ptl_2 = (uint64_t*)pt_mem_addr;
-      pt_mem_addr += sizeof(uint64_t) * 512;
-      if (pt_mem_addr > HIGHER_HALF + 0x40000000 - 2*PAGE_SIZE) {
+      ptl_2 = (uint64_t*)(pt_mem_offset + pt_virt_start);
+      ptl_3[ptl_3_index] = pt_mem_offset + pt_phys_start | PT_FLAG_PRESENT | PT_FLAG_WRITE;
+      pt_mem_offset += sizeof(uint64_t) * 512;
+      if (pt_mem_offset > 2*PAGE_SIZE) {
         printk("FIXME: space for page tables is full\n");
         abort();
     }
   }
 
-  ptl_2[ptl_2_index] = (uint64_t)phys | PT_FLAG_PRESENT | PT_FLAG_2MB | flags; 
+  ptl_2[ptl_2_index] = (uint64_t)phys | PT_FLAG_PRESENT | PT_FLAG_2MB | PT_FLAG_WRITE;
 }

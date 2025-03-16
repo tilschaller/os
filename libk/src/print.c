@@ -20,10 +20,10 @@ static bool print(const char *data, size_t length)
 static char *convert(unsigned int num, int base) 
 { 
     static char Representation[]= "0123456789ABCDEF";
-    static char buffer[50]; 
+    static char buffer[250]; 
     char *ptr; 
 
-    ptr = &buffer[49]; 
+    ptr = &buffer[249]; 
     *ptr = '\0'; 
 
     do 
