@@ -28,6 +28,8 @@ void pmm_set_page_used(uint8_t *bitmap_entry, int bit);
 void pmm_set_page_free(uint8_t *bitmap_entry, int bit);
 int pmm_get_page_status(uint8_t *bitmap_entry, int bit);
 
+void pmm_alloc();
+
 struct vm_chunk{
   uintptr_t base;
   size_t length;

@@ -23,7 +23,11 @@ static volatile struct limine_executable_address_request exe_addr_request = {
   .revision = 0};
 
 static void init_pmm(uintptr_t phys_mem);
+static void init_vmm();
 static void init_paging(uintptr_t phys_mem);
+
+struct vm_chunk* vm_objs = NULL;
+
 // waterbucket like allocator
 size_t pt_mem_offset = 0;
 uintptr_t pt_phys_start = 0;
@@ -116,7 +120,7 @@ void init_pmm(uintptr_t phys_mem) {
   // - stack (2MB)
   // - mman objects (2MB)
   // - page tables (4 MB)
-  // - kernel and framebuffer dont need to be mapped
+  // - kernel and framebuffer dont need to be mapped because they arent in the structs
   cur = (struct pm_chunk*)(phys_mem + 3*PAGE_SIZE + hhdm_request.response->offset);
   while (true) {
     if (cur->base == phys_mem) {
@@ -202,7 +206,10 @@ int vmm_get_page_status(uint64_t *pt_index) {
   return *pt_index & 0b1;
 }
 
-// i hate this function
+void init_vmm() {
+ 
+}
+
 // rewrite when adding userspace
 // TODO: add proper allocation for page tables and add unmap function
 void map_memory(void *root_table, void *phys, void *virt, uint64_t flags) {
@@ -241,4 +248,8 @@ void map_memory(void *root_table, void *phys, void *virt, uint64_t flags) {
   }
 
   ptl_2[ptl_2_index] = (uint64_t)phys | PT_FLAG_PRESENT | PT_FLAG_2MB | PT_FLAG_WRITE;
+}
+
+void* vmm_alloc(size_t length, size_t flags, void* arg) {
+
 }
