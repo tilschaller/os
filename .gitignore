@@ -1,0 +1,7 @@
+*.iso
+isodir
+sysroot
+*.o
+*.d
+.cache
+compile_commands.json
