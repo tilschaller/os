@@ -22,6 +22,6 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
 
   mman_initialize(_mbi);
 
-  printf("Reached end of kernel code\n");
+  printf("\nReached end of kernel code\n");
   abort();
 }
