@@ -9,9 +9,7 @@
 // this functions must be called before any other calls to memory managment functions
 void mman_initialize(const uint32_t _mbi);
 
-// returns a pointer to continuous physical memory
-// the size is pages_c * PAGE_SIZE
-// the returned address is page aligned
-void *get_page_phys(size_t pages_c);
+// returns a pointer to a single physical page
+void *get_page_phys(void);
 
 #endif

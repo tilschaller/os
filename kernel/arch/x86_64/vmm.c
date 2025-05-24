@@ -50,7 +50,7 @@ void vmm_map_physical_to_high(memory_map* mmap, const int entries_c) {
       uint64_t _pt_2 = pre_mmap_get_page(mmap, entries_c);
       uint64_t *pt_2 = (uint64_t*)(_pt_2 + KERNEL_VMA);
       for (size_t j = 0; j < 512; j++) {
-          pt_2[j] = (j*0x200000)+(i*0x40000000) | PAGE_HUGE | PAGE_WRITE | PAGE_PRESENT;
+          pt_2[j] = (j * 0x200000 + i * 0x40000000) | PAGE_HUGE | PAGE_WRITE | PAGE_PRESENT;
       }
       pt_3[i] = _pt_2 | PAGE_WRITE | PAGE_PRESENT;
   }

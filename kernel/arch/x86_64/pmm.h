@@ -5,12 +5,13 @@
 #include <stddef.h>
 #include <kernel/multiboot.h>
 
-#define PMM_FREE 0
-#define PMM_USED 1
+#define PM_FREE 0
+#define PM_USED 1
 
 typedef struct {
   uint64_t addr;
   uint64_t length;
+  uint64_t pages;
   uint8_t bitmap[];
 } pm_chunk;
 
