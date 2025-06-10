@@ -60,6 +60,8 @@ void pm_chunk_create(uint64_t base, uint64_t length) {
   memset(chunk->bitmap, PM_FREE, pages >> 3);
 }
 
+// declared in kernel/include/kernel/mman.h
+// return a single physical page of size 0x1000
 void *get_page_phys(void) {
     // loop through all the memory segments
     for (size_t i = 0; i < p_mmap_entries; i++) {

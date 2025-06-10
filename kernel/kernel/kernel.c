@@ -8,8 +8,8 @@
 #include <kernel/mman.h>
 
 void kernel_main(const uint32_t magic, const uint32_t _mbi) {
-  // initialize global variable etc. needed to print text
-  // never call printf before this, as it could lead tp undefined behaviour
+  // initialize global variables etc. needed to print text
+  // never call printf before this, as it could lead to undefined behaviour
   terminal_initialize();
 
   if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -23,8 +23,11 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
 
   mman_initialize(_mbi);
 
-  // test if this works - also marks the very first page as used
-  printf("We just fetched a page: %x\n", get_page_phys());
+  // marks the very first page as used
+  // because it could lead to confusion, 
+  // because this function returns NULL if no page was found
+  // and also returns 0 on first call
+  get_page_phys();
 
   printf("\nReached end of kernel code\n");
   abort();

@@ -1,4 +1,5 @@
 #!/bin/sh
+
 set -e
 . ./scripts/build.sh
 
@@ -12,4 +13,11 @@ menuentry "nightc" {
 	multiboot /boot/nightc.kernel
 }
 EOF
-grub-mkrescue -o nightc.iso isodir
+
+# TODO: build without uefi stub only on i386 or higher architectures
+# for now it builds the iso only for i386
+# a simple check for arch should be enough
+
+grub-mkrescue -o nightc.iso isodir \
+  --modules="biosdisk part_msdos ext2 multiboot normal configfile" \
+  --directory=/usr/lib/grub/i386-pc/

@@ -68,7 +68,7 @@ int printf(const char* restrict format, ...) {
             static const char digits[] = "0123456789abcdef";
             uint64_t x = va_arg(parameters, uint64_t);
             char buffer[16];
-            int i = 0;
+            size_t i = 0;
 
             if (x == 0) {
                 if (maxrem < 1)

@@ -5,3 +5,4 @@ sysroot
 *.d
 .cache
 compile_commands.json
+mount/
