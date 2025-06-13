@@ -58,7 +58,7 @@ void vmm_map_physical_to_high(memory_map* mmap, const int entries_c) {
 
 // declared in kernel/include/kernel/mman.h
 // for now flags is ignored, we just set present, read and write flags on any page
-void *mmap(void *addr, size_t length, int flags) {
+void *mmap(void *_addr, void *addr, size_t length, int flags) {
   // supress the unused warning, because it is intentional
   (void)(flags);
   // we store the pointers to the diffrent paging tables in an array 
@@ -77,7 +77,7 @@ void *mmap(void *addr, size_t length, int flags) {
     Offset in the page table.
   */
   // NOTE: these are the start address of the memory segment
-  uint32_t pt_entries[4] = {0};
+  uint16_t pt_entries[4] = {0};
   pt_entries[0] = ((uint64_t)addr >> 39) & 0xFFFF; 
   pt_entries[1] = ((uint64_t)addr >> 30) & 0xFFFF;
   pt_entries[2] = ((uint64_t)addr >> 21) & 0xFFFF;
@@ -98,11 +98,16 @@ void *mmap(void *addr, size_t length, int flags) {
     pt[1] = get_page_phys();
     // write into pt_4 with proper permissions
     pt[0][pt_entries[0]] = (uint64_t)pt[1] | PAGE_DEFAULT;
+    printf("pt[1]: %x\n", pt[1]);
     // increment pt[1] to virtual address
     pt[1] += HIGHER_HALF_MIRROR;
+    printf("HIGHER_HALF_MIRROR: %x\n", HIGHER_HALF_MIRROR);
+    printf("?: %x\n", pt[1]);
+    abort();
     // zero out pt[1]
     memset(pt[1], 0, PAGE_SIZE);
   }
+
   // check pt_2 the same as pt_3 even though it could be we just allocated the Page
   // this keeps things simpler
   // you could also only check if this exists, when pt_3 wasnt just allocated
@@ -129,6 +134,14 @@ void *mmap(void *addr, size_t length, int flags) {
     pt[3] += HIGHER_HALF_MIRROR;
     memset(pt[3], 0, PAGE_SIZE);
   }
+  
+  // just map single pages for now because im lazy and want to work on other things
+  if (length != PAGE_SIZE) {
+    printf("TODO: we can only map single pages in the address space\n");
+    return 0;
+  }
+
+  pt[3][pt_entries[3]] = (uint64_t)_addr | PAGE_DEFAULT;
 
   // confirm everything worked as intended
   return addr;

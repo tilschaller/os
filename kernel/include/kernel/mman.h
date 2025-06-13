@@ -17,6 +17,6 @@ void *get_page_phys(void);
 // map a physical address range into the address space
 // flags is unused for now
 // TODO: make flags usable
-void *mmap(void *addr, size_t length, int flags);
+void *mmap(void *_addr, void *addr, size_t length, int flags);
 
 #endif
