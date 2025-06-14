@@ -29,8 +29,6 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   // and also returns 0 on first call
   get_page_phys();
 
-  mmap(get_page_phys(), 0, PAGE_SIZE, 0);
-
   printf("\nReached end of kernel code\n");
   abort();
 }

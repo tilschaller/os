@@ -98,12 +98,9 @@ void *mmap(void *_addr, void *addr, size_t length, int flags) {
     pt[1] = get_page_phys();
     // write into pt_4 with proper permissions
     pt[0][pt_entries[0]] = (uint64_t)pt[1] | PAGE_DEFAULT;
-    printf("pt[1]: %x\n", pt[1]);
     // increment pt[1] to virtual address
-    pt[1] += HIGHER_HALF_MIRROR;
-    printf("HIGHER_HALF_MIRROR: %x\n", HIGHER_HALF_MIRROR);
-    printf("?: %x\n", pt[1]);
-    abort();
+    // TODO: this can cause an integer overflow i think
+    pt[1] = (uint64_t*)((uint64_t)pt[1]  + HIGHER_HALF_MIRROR);
     // zero out pt[1]
     memset(pt[1], 0, PAGE_SIZE);
   }
@@ -118,8 +115,8 @@ void *mmap(void *_addr, void *addr, size_t length, int flags) {
   } else {
     pt[2] = get_page_phys();
     pt[1][pt_entries[1]] = (uint64_t)pt[2] | PAGE_DEFAULT;
-    pt[2] += HIGHER_HALF_MIRROR;
-    memset(pt[2], 0, PAGE_SIZE);
+    pt[2] = (uint64_t*)((uint64_t)pt[2]  + HIGHER_HALF_MIRROR);
+   memset(pt[2], 0, PAGE_SIZE);
   }
 
   // TODO: move these 3 similar if branches into a for loop with 3 iterations
@@ -131,8 +128,8 @@ void *mmap(void *_addr, void *addr, size_t length, int flags) {
   } else {
     pt[3] = get_page_phys();
     pt[2][pt_entries[2]] = (uint64_t)pt[3] | PAGE_DEFAULT;
-    pt[3] += HIGHER_HALF_MIRROR;
-    memset(pt[3], 0, PAGE_SIZE);
+    pt[3] = (uint64_t*)((uint64_t)pt[3]  + HIGHER_HALF_MIRROR);
+   memset(pt[3], 0, PAGE_SIZE);
   }
   
   // just map single pages for now because im lazy and want to work on other things
