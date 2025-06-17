@@ -6,6 +6,7 @@
 #include <kernel/tty.h>
 #include <kernel/multiboot.h>
 #include <kernel/mman.h>
+#include <kernel/interrupts.h>
 
 void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   // initialize global variables etc. needed to print text
@@ -24,10 +25,12 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   mman_initialize(_mbi);
 
   // marks the very first page as used
-  // because it could lead to confusion, 
+  // because it could lead to confusion,
   // because this function returns NULL if no page was found
   // and also returns 0 on first call
   get_page_phys();
+
+  interrupts_initialize();
 
   printf("\nReached end of kernel code\n");
   abort();
