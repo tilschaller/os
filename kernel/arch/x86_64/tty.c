@@ -40,20 +40,20 @@ void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
 void terminal_putchar(char c) {
 	unsigned char uc = c;
 
-  if (uc == '\n') {
-    terminal_row++;
-    terminal_column = -1;
-    goto oob_check;
-  } 
+  	if (uc == '\n') {
+    	terminal_row++;
+    	terminal_column = -1;
+    	goto oob_check;
+  	} 
 
 	terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
 
-  oob_check:
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
+  	oob_check:
+		if (++terminal_column == VGA_WIDTH) {
+			terminal_column = 0;
+			if (++terminal_row == VGA_HEIGHT)
 			terminal_row = 0;
-	}
+		}
 }
 
 void terminal_write(const char* data, size_t size) {

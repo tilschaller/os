@@ -9,3 +9,4 @@ done
 rm -rf sysroot
 rm -rf isodir
 rm -rf nightc.iso
+rm -rf compile_commands.json

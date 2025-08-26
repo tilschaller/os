@@ -9,9 +9,17 @@
 extern "C" {
 #endif
 
-int printf(const char* __restrict, ...);
-int putchar(int);
-int puts(const char*);
+typedef enum {
+    tty,
+    debug,
+} output_stream;
+
+#define printf(...) fprintf(tty, __VA_ARGS__)
+int fprintf(output_stream output, const char* __restrict, ...);
+#define putchar(...) fputchar(tty, __VA_ARGS__)
+int fputchar(output_stream output, int);
+#define puts(...) fputs(tty, __VA_ARGS__)
+int fputs(output_stream, const char*);
 
 #ifdef __cplusplus
 }

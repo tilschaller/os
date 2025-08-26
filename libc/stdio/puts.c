@@ -1,5 +1,5 @@
 #include <stdio.h>
 
-int puts(const char* string) {
-	return printf("%s\n", string);
+int fputs(output_stream output, const char* string) {
+	return fprintf(output, "%s\n", string);
 }

@@ -6,15 +6,17 @@
 #include <stdio.h>
 #include <string.h>
 
-static bool print(const char* data, size_t length) {
+
+
+static bool fprint(output_stream output, const char* data, size_t length) {
 	const unsigned char* bytes = (const unsigned char*) data;
 	for (size_t i = 0; i < length; i++)
-		if (putchar(bytes[i]) == EOF)
+		if (fputchar(output, bytes[i]) == EOF)
 			return false;
 	return true;
 }
 
-int printf(const char* restrict format, ...) {
+int fprintf(output_stream output, const char* restrict format, ...) {
 	va_list parameters;
 	va_start(parameters, format);
 
@@ -33,7 +35,7 @@ int printf(const char* restrict format, ...) {
 				// TODO: Set errno to EOVERFLOW.
 				return -1;
 			}
-			if (!print(format, amount))
+			if (!fprint(output, format, amount))
 				return -1;
 			format += amount;
 			written += amount;
@@ -49,7 +51,7 @@ int printf(const char* restrict format, ...) {
 				// TODO: Set errno to EOVERFLOW.
 				return -1;
 			}
-			if (!print(&c, sizeof(c)))
+			if (!fprint(output, &c, sizeof(c)))
 				return -1;
 			written++;
 		} else if (*format == 's') {
@@ -60,7 +62,7 @@ int printf(const char* restrict format, ...) {
 				// TODO: Set errno to EOVERFLOW.
 				return -1;
 			}
-			if (!print(str, len))
+			if (!fprint(output, str, len))
 				return -1;
 			written += len;
 		} else if (*format == 'x') {
@@ -73,7 +75,7 @@ int printf(const char* restrict format, ...) {
             if (x == 0) {
                 if (maxrem < 1)
                     return -1;
-                if (!print("0", 1))
+                if (!fprint(output, "0", 1))
                     return -1;
                 written += 1;
             } else {
@@ -84,7 +86,7 @@ int printf(const char* restrict format, ...) {
                 }
                 if (maxrem < i)
                     return -1;
-                if (!print(&buffer[16 - i], i))
+                if (!fprint(output, &buffer[16 - i], i))
                   return -1;
                 written += i;
             }
@@ -95,7 +97,7 @@ int printf(const char* restrict format, ...) {
 				// TODO: Set errno to EOVERFLOW.
 				return -1;
 			}
-			if (!print(format, len))
+			if (!fprint(output, format, len))
 				return -1;
 			written += len;
 			format += len;

@@ -7,16 +7,16 @@
 #include "int.h"
 
 static inline void cli() {
-	asm volatile("cli");
+	__asm__ volatile("cli");
 }
 static inline void sti() {
-	asm volatile("sti");
+	__asm__ volatile("sti");
 }
 
 // general exception handler 
 __attribute__((no_return))
 void exception_handler(void);
-void exception_handler() {
+void exception_handler(void) {
 	// call abort
 	printf("General exception occured: Aborting\n");
 	abort();
@@ -37,7 +37,7 @@ static void set_descriptor(idt_entry *idt, uint8_t entry, void *isr, uint8_t fla
 // defined in int_stub.S
 extern void *isr_stub_table[];
 
-void interrupts_initialize() {
+void interrupts_initialize(void) {
 	// disabnle interrupts just in case 
 	cli();
 
@@ -56,6 +56,6 @@ void interrupts_initialize() {
 		set_descriptor(idt, vector, isr_stub_table[vector], 0x8E);
 	}
 
-	asm volatile ("lidt %0" : : "m"(idtreg));
+	__asm__ volatile ("lidt %0" : : "m"(idtreg));
 	sti();
 }

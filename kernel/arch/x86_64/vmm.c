@@ -24,7 +24,7 @@ uint64_t get_cr3_value(void) {
 // pointers to physical memory is marked with an underscore
 void vmm_map_physical_to_high(memory_map* mmap, const int entries_c) {
   uint64_t highest = mmap[entries_c - 1].length + mmap[entries_c - 1].length;
-  printf("Highest physical address: 0x%x\n", highest);
+  fprintf(debug ,"DEBUG: highest physical address: 0x%x\n", highest);
 
   // round up highest to the nearest HUGE_PAGE_SIZE value
   highest = ((highest + 0x2000000 - 1) / 0x200000) * 0x200000;
