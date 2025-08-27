@@ -22,7 +22,7 @@ isr_stub_\num:
 
 	add $16, %rsp
 
-	iret
+	iretq
 .endm 
 
 .extern interrupt_dispatch
@@ -45,7 +45,7 @@ isr_stub_\num:
 
 	add $16, %rsp
 	
-	iret
+	iretq
 .endm
 
 isr_no_err_stub		0

@@ -6,7 +6,7 @@ void abort(void) {
 #if defined(__is_libk)
 	printf("kernel: panic: abort()\n");
 	// completely halt the computer
-	asm volatile ("cli; hlt");
+	__asm__ volatile ("cli; hlt");
 #else
 	// TODO: Abnormally terminate the process as if by SIGABRT.
 	printf("abort()\n");

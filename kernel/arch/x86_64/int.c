@@ -6,10 +6,10 @@
 #include <kernel/mman.h>
 #include "int.h"
 
-static inline void cli() {
+static inline void cli(void) {
 	__asm__ volatile("cli");
 }
-static inline void sti() {
+static inline void sti(void) {
 	__asm__ volatile("sti");
 }
 
