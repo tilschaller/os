@@ -1,18 +1,53 @@
 .section .text
 
+.extern interrupt_dispatch_err
+
 .macro isr_err_stub num
 isr_stub_\num:
-	call exception_handler 
-	iretq
+	push %rax
+	push %rbx
+	
+	push %r14
+	push %r15
+
+	mov %rsp, %rdi
+	call interrupt_dispatch_err
+	mov %rax, %rsp
+
+	pop %r15
+	pop %r14
+
+	pop %rbx 
+	pop %rax
+
+	add $16, %rsp
+
+	iret
 .endm 
+
+.extern interrupt_dispatch
 
 .macro isr_no_err_stub num
 isr_stub_\num:
-	call exception_handler
-	iretq
+	push %rax
+	push %rbx
+	
+	push %r14
+	push %r15
+
+	call interrupt_dispatch
+
+	pop %r15
+	pop %r14
+
+	pop %rbx 
+	pop %rax
+
+	add $16, %rsp
+	
+	iret
 .endm
 
-.extern exception_handler
 isr_no_err_stub		0
 isr_no_err_stub		1
 isr_no_err_stub		2

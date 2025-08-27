@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <kernel/tty.h>
 #include <kernel/multiboot.h>
@@ -32,7 +33,7 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
 
   interrupts_initialize();
 
-  printf("\nReached end of kernel code\n");
+  printf("Reached end of kernel code\n");
   fprintf(debug, "DEBUG: leaving kernel main\n");
   abort();
 }

@@ -18,4 +18,21 @@ typedef struct {
   uint64_t  base;
 } __attribute__((packed)) idtr;
 
+typedef struct {
+    uint64_t r15;
+    uint64_t r14;
+    //other pushed registers
+    uint64_t rbx;
+    uint64_t rax;
+
+    uint64_t vector_number;
+    uint64_t error_code;
+
+    uint64_t iret_rip;
+    uint64_t iret_cs;
+    uint64_t iret_flags;
+    uint64_t iret_rsp;
+    uint64_t iret_ss;
+} cpu_status_t;
+
 #endif 

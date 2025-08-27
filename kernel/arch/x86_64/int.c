@@ -13,13 +13,36 @@ static inline void sti() {
 	__asm__ volatile("sti");
 }
 
-// general exception handler 
-__attribute__((no_return))
-void exception_handler(void);
-void exception_handler(void) {
-	// call abort
-	printf("General exception occured: Aborting\n");
-	abort();
+// interrupt handler for errors (see int_stub.S)
+cpu_status_t *interrupt_dispatch_err(cpu_status_t *context);
+cpu_status_t *interrupt_dispatch_err(cpu_status_t *context) {
+	// we cant deal with any of this
+	switch (context->vector_number) {
+		case 13:
+			fprintf(debug, "DEBUG: INT_ERR: general protection fault\n");
+			abort();
+			break;
+		case 14:
+			fprintf(debug, "DEBUG: INT_ERR: page protection fault\n");
+			abort();
+			break;
+		default:
+			fprintf(debug, "DEBUG: INT_ERR: unknown interrupt occurred (%x)\n", context->vector_number);
+			abort();
+			break;
+	}
+	return context;
+}
+
+// interrupt handler
+cpu_status_t *interrupt_dispatch(cpu_status_t *context);
+cpu_status_t *interrupt_dispatch(cpu_status_t *context) {
+	switch (context->vector_number) {
+		default:
+			fprintf(debug, "DEBUG: INT: unknown interrupt occurred\n");
+			break;
+	}
+	return context;
 }
 
 static void set_descriptor(idt_entry *idt, uint8_t entry, void *isr, uint8_t flags) {
