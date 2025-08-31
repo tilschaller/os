@@ -6,6 +6,7 @@
 #include <kernel/multiboot.h>
 #include <kernel/mman.h>
 #include <kernel/interrupts.h>
+#include <kernel/boot.h>
 
 void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   fprintf(debug, "DEBUG: entered kernel_main\n");
@@ -22,15 +23,7 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   printf("*NIGHTC OS*\n");
   printf("***********\n\n");
 
-  mman_initialize(_mbi);
-
-  // marks the very first page as used
-  // because it could lead to confusion,
-  // because this function returns NULL if no page was found
-  // and also returns 0 on first call
-  get_page_phys();
-
-  interrupts_initialize();
+  arch_init(_mbi);
 
   printf("Reached end of kernel code\n");
   fprintf(debug, "DEBUG: leaving kernel main\n");

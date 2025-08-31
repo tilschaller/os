@@ -5,6 +5,8 @@
 #include <stddef.h>
 
 #define PAGE_SIZE 0x1000
+// TODO: move to arch specific dir
+// is this address even accessible on 32 bit for example?
 #define HIGHER_HALF_MIRROR 0xffff800000000000
 
 // this functions must be called before any other calls to memory managment functions
