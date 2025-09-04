@@ -5,7 +5,9 @@
 #include <kernel/util.h>
 
 #include <stdint.h>
+#include <stdio.h>
 
+#include "acpi.h"
 
 #define PIC_COMMAND_MASTER 0x20
 #define PIC_DATA_MASTER 0x21
@@ -41,4 +43,6 @@ void arch_init(const uint32_t _mbi) {
     outb(PIC_DATA_SLAVE, ICW_4);
     outb(PIC_DATA_MASTER, 0xFF);
     outb(PIC_DATA_SLAVE, 0xFF);
+
+    rsdp_descriptor_t *rsdp = find_rsdp();
 }
