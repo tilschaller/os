@@ -10,6 +10,10 @@ extern "C" {
 __attribute__((__noreturn__))
 void abort(void);
 
+// i put this in abort.c sorry
+__attribute__((__noreturn__))
+void exit(int exit_status);
+
 #ifdef __cplusplus
 }
 #endif

@@ -32,6 +32,10 @@ void arch_init(const uint32_t _mbi) {
 
     interrupts_initialize();
 
+    // acpi unused for now
+    rsdp_descriptor_t *rsdp = find_rsdp();
+    (void)rsdp;
+
     // disable legacy pic
     outb(PIC_COMMAND_MASTER, ICW_1);
     outb(PIC_COMMAND_SLAVE, ICW_1);
@@ -44,5 +48,8 @@ void arch_init(const uint32_t _mbi) {
     outb(PIC_DATA_MASTER, 0xFF);
     outb(PIC_DATA_SLAVE, 0xFF);
 
-    rsdp_descriptor_t *rsdp = find_rsdp();
+    // next we discover the local apic
+    // maybe map this to some kind of virtual address
+    // for now im just going to use the HIGHER_HALF_OFFSET
+
 }

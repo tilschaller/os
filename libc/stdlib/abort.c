@@ -9,7 +9,21 @@ void abort(void) {
 	__asm__ volatile ("cli; hlt");
 #else
 	// TODO: Abnormally terminate the process as if by SIGABRT.
-	printf("abort()\n");
+#endif
+	while (1) { }
+	__builtin_unreachable();
+}
+
+
+__attribute__((__noreturn__))
+void exit(int exit_status) {
+#if defined(__is_libk)
+	(void)exit_status;
+	printf("Exiting gracefully\n");
+	// completely halt the computer
+	__asm__ volatile ("cli; hlt");
+#else
+	// TODO: Abnormally terminate the process as if by SIGABRT.
 #endif
 	while (1) { }
 	__builtin_unreachable();

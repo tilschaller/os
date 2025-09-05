@@ -31,6 +31,7 @@ cpu_status_t *interrupt_dispatch_err(cpu_status_t *context) {
 			abort();
 			break;
 	}
+	// we cant recover from errors yet
 	return context;
 }
 

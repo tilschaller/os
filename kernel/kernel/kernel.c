@@ -8,6 +8,8 @@
 #include <kernel/interrupts.h>
 #include <kernel/boot.h>
 
+#include <string.h>
+
 void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   fprintf(debug, "DEBUG: entered kernel_main\n");
   // initialize global variables etc. needed to print text
@@ -15,7 +17,7 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   terminal_initialize();
 
   if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
-    printf("Kernel not loaded by multiboot 1 compliant bootloader\n");
+    fprintf(debug, "DEBUG: Kernel not loaded by multiboot 1 compliant bootloader\n");
     abort();
   }
 
@@ -25,7 +27,8 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
 
   arch_init(_mbi);
 
-  printf("Reached end of kernel code\n");
+  printf("> \n");
+
   fprintf(debug, "DEBUG: leaving kernel main\n");
   abort();
 }
