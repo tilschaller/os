@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+// TODO: mark physical addresses with an underscore (_)
+// example: _xsdt_addresses in rsdp_descriptor_t
+
 typedef struct {
     char signature[8];
     uint8_t checksum;
@@ -12,7 +15,7 @@ typedef struct {
     // only valid for v2
     uint32_t length;
     uint64_t xsdt_address;
-    uint8_t extenden_checksum;
+    uint8_t extended_checksum;
     uint8_t reserved[3];
 } __attribute__((packed)) rsdp_descriptor_t;
 
@@ -34,9 +37,17 @@ typedef struct {
 
 typedef struct {
     acpi_sdt_header_t sdt_header; // signature "XSDT"
-    uint32_t xdt_addresses[];
+    uint64_t sdt_addresses[];
 } __attribute__((packed)) xsdt_t;
 
+typedef struct {
+    acpi_sdt_header_t header; // signature "APIC"
+    uint32_t local_apic_addr;
+    uint32_t flags;
+    // somewhere there are the types
+} __attribute__((packed)) madt_t;
+
 rsdp_descriptor_t *find_rsdp(void);
+uint64_t find_dt(rsdp_descriptor_t *rsdp, const char signature[4]);
 
 #endif // _ACPI_H

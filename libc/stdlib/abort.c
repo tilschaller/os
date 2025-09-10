@@ -17,6 +17,7 @@ void abort(void) {
 
 __attribute__((__noreturn__))
 void exit(int exit_status) {
+	// TODO: this function should also call all functions registered with an atexit() fucntion which also doesnt exists
 #if defined(__is_libk)
 	(void)exit_status;
 	printf("Exiting gracefully\n");

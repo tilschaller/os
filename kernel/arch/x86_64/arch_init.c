@@ -34,7 +34,8 @@ void arch_init(const uint32_t _mbi) {
 
     // acpi unused for now
     rsdp_descriptor_t *rsdp = find_rsdp();
-    (void)rsdp;
+    printf("RSDP: %x\n", rsdp);
+    printf("RSDT: %x\n", (uint64_t)rsdp->rsdt_address + HIGHER_HALF_MIRROR);
 
     // disable legacy pic
     outb(PIC_COMMAND_MASTER, ICW_1);
@@ -48,7 +49,12 @@ void arch_init(const uint32_t _mbi) {
     outb(PIC_DATA_MASTER, 0xFF);
     outb(PIC_DATA_SLAVE, 0xFF);
 
-    // next we discover the local apic
+    // next we try to find the madt table
+    uint64_t madt = find_dt(rsdp, "APIC");
+    if (madt == 0) {
+        fprintf(tty, "Could not find MADT Table used to configure local apic\n");
+    };
+    
     // maybe map this to some kind of virtual address
     // for now im just going to use the HIGHER_HALF_OFFSET
 

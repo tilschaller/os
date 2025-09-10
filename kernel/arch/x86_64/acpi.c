@@ -56,3 +56,35 @@ rsdp_descriptor_t *find_rsdp(void) {
     abort();
     __builtin_unreachable();
 }
+
+uint64_t find_dt(rsdp_descriptor_t *rsdp, const char signature[4]) {
+    // do we need to use xsdt?
+    if (rsdp->revision > 0 && rsdp->xsdt_address != 0) {
+        xsdt_t *xsdt = (xsdt_t*)(rsdp->xsdt_address + HIGHER_HALF_MIRROR);
+        // calculate the number of entries in xsdt
+        size_t number_of_items = (xsdt->sdt_header.length - sizeof(acpi_sdt_header_t)) / 8;
+        // check each entry for the signature
+        for (size_t i = 0; i < number_of_items; i++) {
+            acpi_sdt_header_t *dt = (acpi_sdt_header_t*)(xsdt->sdt_addresses[i] + HIGHER_HALF_MIRROR);
+            // are the signatures the same
+            if (!memcmp(dt->signature, signature, 4)) return (uint64_t)dt;
+        }
+    } // else we use rsdt 
+    else {
+        rsdt_t *rsdt = (rsdt_t*)(rsdp->rsdt_address + HIGHER_HALF_MIRROR);
+        // calculate the number of entries in rsdt
+        size_t number_of_items = (rsdt->sdt_header.length - sizeof(acpi_sdt_header_t)) / 4;
+        // check each entry for the signature
+        for (size_t i = 0; i < number_of_items; i++) {
+            acpi_sdt_header_t *dt = (acpi_sdt_header_t*)(rsdt->sdt_addresses[i] + HIGHER_HALF_MIRROR);
+            fprintf(tty, "dt: %x\n", dt);
+            fprintf(tty, "Signature: %c", dt->signature[0]);
+            fprintf(tty, "%c", dt->signature[1]);
+            fprintf(tty, "%c", dt->signature[2]);
+            fprintf(tty, "%c\n", dt->signature[3]);
+            // are the signatures the same
+            if (!memcmp(dt->signature, signature, 4)) return (uint64_t)dt;
+        }
+    }
+    return 0;
+}

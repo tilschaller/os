@@ -30,5 +30,5 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   printf("> \n");
 
   fprintf(debug, "DEBUG: leaving kernel main\n");
-  abort();
+  exit(0);
 }
