@@ -23,6 +23,7 @@ typedef struct {
     char signature[4];
     uint32_t length;
     uint8_t revision;
+    uint8_t checksum;
     char oem_id[6];
     char oem_table_id[8];
     uint32_t oem_revision;
@@ -40,11 +41,32 @@ typedef struct {
     uint64_t sdt_addresses[];
 } __attribute__((packed)) xsdt_t;
 
+//https://wiki.osdev.org/MADT
+
+// i hate these tables
+
+typedef struct {
+    uint8_t type;
+    uint8_t length;
+    union record_t {
+        struct lapic_t {
+            uint8_t acpi_processor_id;
+            uint8_t id;
+            uint32_t flags;
+        } lapic;
+        struct io_apic_t {
+            uint8_t id;
+            uint8_t reserved;
+            uint32_t addr;
+            uint32_t global_system_interrupt_base;
+        } io_apic;
+    } record;
+} __attribute__((packed)) madt_record_t;
+
 typedef struct {
     acpi_sdt_header_t header; // signature "APIC"
-    uint32_t local_apic_addr;
+    uint32_t lapic_addr;
     uint32_t flags;
-    // somewhere there are the types
 } __attribute__((packed)) madt_t;
 
 rsdp_descriptor_t *find_rsdp(void);

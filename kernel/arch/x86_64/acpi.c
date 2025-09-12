@@ -77,11 +77,6 @@ uint64_t find_dt(rsdp_descriptor_t *rsdp, const char signature[4]) {
         // check each entry for the signature
         for (size_t i = 0; i < number_of_items; i++) {
             acpi_sdt_header_t *dt = (acpi_sdt_header_t*)(rsdt->sdt_addresses[i] + HIGHER_HALF_MIRROR);
-            fprintf(tty, "dt: %x\n", dt);
-            fprintf(tty, "Signature: %c", dt->signature[0]);
-            fprintf(tty, "%c", dt->signature[1]);
-            fprintf(tty, "%c", dt->signature[2]);
-            fprintf(tty, "%c\n", dt->signature[3]);
             // are the signatures the same
             if (!memcmp(dt->signature, signature, 4)) return (uint64_t)dt;
         }
