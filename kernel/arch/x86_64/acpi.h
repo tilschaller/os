@@ -41,24 +41,24 @@ typedef struct {
     uint64_t sdt_addresses[];
 } __attribute__((packed)) xsdt_t;
 
-//https://wiki.osdev.org/MADTd
+//https://wiki.osdev.org/MADT
 
 typedef struct {
     uint8_t type;
     uint8_t length;
     union record_t {
-        __attribute__((packed)) struct lapic_t {
+        struct lapic_t {
             uint8_t acpi_processor_id;
             uint8_t id;
             uint32_t flags;
-        } lapic;
-        __attribute__((packed)) struct io_apic_t {
+        } __attribute__((packed)) lapic;
+        struct io_apic_t {
             uint8_t id;
             uint8_t reserved;
             uint32_t addr;
             uint32_t global_system_interrupt_base;
-        } io_apic;
-    } record;
+        } __attribute__((packed)) io_apic;
+    } __attribute__((packed)) record;
 } __attribute__((packed)) madt_record_t;
 
 typedef struct {

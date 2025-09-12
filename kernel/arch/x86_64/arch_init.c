@@ -70,10 +70,10 @@ void arch_init(const uint32_t _mbi) {
     for (uint64_t i = (uint64_t)madt + sizeof(madt_t); i < (uint64_t)madt + madt->header.length;) {
         madt_record_t *entry = (madt_record_t*)i;
         if (entry->type == 1) {
-            io_apic_addr = (uint64_t)entry->record.io_apic.addr;
+            io_apic_addr = (uint64_t)entry->record.io_apic.addr + HIGHER_HALF_MIRROR;
             break;
         }
         i += entry->length;
     }
-    __asm__("movq %0, %%rax; cli; hlt;" : : "r"(io_apic_addr): "%rax");
+    (void)io_apic_addr;
 }
