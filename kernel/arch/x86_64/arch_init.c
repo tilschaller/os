@@ -75,4 +75,5 @@ void arch_init(const uint32_t _mbi) {
         }
         i += entry->length;
     }
+    __asm__("movq %0, %%rax; cli; hlt;" : : "r"(io_apic_addr): "%rax");
 }

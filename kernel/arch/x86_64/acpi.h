@@ -41,20 +41,18 @@ typedef struct {
     uint64_t sdt_addresses[];
 } __attribute__((packed)) xsdt_t;
 
-//https://wiki.osdev.org/MADT
-
-// i hate these tables
+//https://wiki.osdev.org/MADTd
 
 typedef struct {
     uint8_t type;
     uint8_t length;
     union record_t {
-        struct lapic_t {
+        __attribute__((packed)) struct lapic_t {
             uint8_t acpi_processor_id;
             uint8_t id;
             uint32_t flags;
         } lapic;
-        struct io_apic_t {
+        __attribute__((packed)) struct io_apic_t {
             uint8_t id;
             uint8_t reserved;
             uint32_t addr;
@@ -67,6 +65,7 @@ typedef struct {
     acpi_sdt_header_t header; // signature "APIC"
     uint32_t lapic_addr;
     uint32_t flags;
+    // madt_record_t[]
 } __attribute__((packed)) madt_t;
 
 rsdp_descriptor_t *find_rsdp(void);
