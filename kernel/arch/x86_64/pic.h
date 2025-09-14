@@ -17,7 +17,11 @@ typedef struct {
     uint32_t dest_format __attribute__((aligned(0x10)));
     uint32_t s_i_v __attribute__((aligned(0x10)));
     // add other registers
-    
+
 } lapic_t;
+
+typedef struct {
+    
+} io_apic_t;
 
 #endif // _PIC_H
