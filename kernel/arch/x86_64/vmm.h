@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <kernel/multiboot.h>
 
+#define HIGHER_HALF_MIRROR 0xffff800000000000
+
 #define PAGE_PRESENT 1
 #define PAGE_WRITE 1 << 1
 #define PAGE_HUGE 1 << 7

@@ -5,10 +5,9 @@
 #include <kernel/tty.h>
 #include <kernel/multiboot.h>
 #include <kernel/mman.h>
-#include <kernel/interrupts.h>
 #include <kernel/boot.h>
-
-#include <string.h>
+#include <kernel/acpi.h>
+#include <kernel/util.h>
 
 void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   fprintf(debug, "DEBUG: entered kernel_main\n");
@@ -26,6 +25,8 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
   printf("***********\n\n");
 
   arch_init(_mbi);
+
+  rsdp_descriptor_t *rsdp = find_rsdp();
 
   printf("> \n");
 

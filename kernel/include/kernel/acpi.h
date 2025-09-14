@@ -71,4 +71,8 @@ typedef struct {
 rsdp_descriptor_t *find_rsdp(void);
 uint64_t find_dt(rsdp_descriptor_t *rsdp, const char signature[4]);
 
+// find interrupt controller
+// i dont know if this belongs here
+uint64_t enable_interrupt_controller(rsdp_descriptor_t *rsdp);
+
 #endif // _ACPI_H

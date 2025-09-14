@@ -35,4 +35,6 @@ typedef struct {
     uint64_t iret_ss;
 } cpu_status_t;
 
+void interrupts_initialize(void);
+
 #endif 

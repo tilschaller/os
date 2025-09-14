@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <kernel/interrupts.h>
 #include <kernel/mman.h>
+#include "vmm.h"
 #include "int.h"
 
 static inline void cli(void) {

@@ -1,10 +1,11 @@
-#include "acpi.h"
+#include <kernel/acpi.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <kernel/mman.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "vmm.h"
 
 static bool validate_rsdp(rsdp_descriptor_t *rsdp) {
     // check for version

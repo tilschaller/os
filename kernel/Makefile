@@ -32,6 +32,7 @@ KERNEL_OBJS=\
 $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
 kernel/debug/debug_console.o \
+kernel/util.o \
 
 OBJS=\
 $(KERNEL_OBJS) \
