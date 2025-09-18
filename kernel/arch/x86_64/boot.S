@@ -1,25 +1,12 @@
 #define ASM
 
 #include "boot.h"
-#include <kernel/multiboot.h>
 
 .globl  kernel_main
 
 .code32
-.section .multiboot
-.align 4
-multiboot_header:
-	.long MULTIBOOT_HEADER_MAGIC                             /* magic */
-	.long MULTIBOOT_HEADER_FLAGS                             /* flags */
-	.long -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS) /* checksum */
-	.long (multiboot_header - KERNEL_VMA)                    /* header_addr */
-	.long (_start - KERNEL_VMA)                              /* load_addr */
-	.long (_edata - KERNEL_VMA)                              /* load_end_addr */
-	.long (_end - KERNEL_VMA)                                /* bss_end_addr */
-	.long (bootstrap - KERNEL_VMA)                           /* entry_addr */
-
-
 .globl bootstrap, init_pml4, init_pdp, init_pd
+.section .text
 bootstrap:
 	/* make sure interrupts are off */
 	cli
@@ -90,7 +77,7 @@ gdt64_end:
 .align 16
 init_gdt64_ptr:
 	.word gdt64_end - gdt64 - 1
-	.long gdt64 - KERNEL_VMA
+	.quad gdt64 - KERNEL_VMA
 
 .align 16
 init_gdt64_ptr_high:

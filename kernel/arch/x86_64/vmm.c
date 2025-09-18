@@ -1,5 +1,4 @@
 #include <kernel/mman.h>
-#include <kernel/multiboot.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>

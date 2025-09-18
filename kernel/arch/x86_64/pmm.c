@@ -6,7 +6,6 @@
 #include <kernel/mman.h>
 
 #include "pmm.h"
-#include "kernel/multiboot.h"
 #include "vmm.h"
 
 size_t p_mmap_entries = 0;
@@ -19,7 +18,7 @@ uint64_t pre_mmap_get_page(memory_map* mmap, const int entries_c) {
         // and under 2MB, because that is mapped and the kernel isnt in the way
         //printf("mem base: %x, %x, %x\n", mmap[i].base_addr, mmap[i].type, mmap[i].length);
         if (mmap[i].length >= PAGE_SIZE
-            && mmap[i].type == MULTIBOOT_MEMORY_AVAILABLE
+            && mmap[i].type == BOOT_MEMORY_AVAILABLE
             && mmap[i].base_addr <= 0x200000
             && mmap[i].base_addr != 0
         ) {
@@ -66,7 +65,7 @@ void *get_page_phys(void) {
     // loop through all the memory segments
     for (size_t i = 0; i < p_mmap_entries; i++) {
         // is the memory usable ?
-        if (p_mmap[i].type != MULTIBOOT_MEMORY_AVAILABLE) continue;
+        if (p_mmap[i].type != BOOT_MEMORY_AVAILABLE) continue;
         // is the segment long enough ?
         if (p_mmap[i].length < PAGE_SIZE) continue;
         // get the bitmap
