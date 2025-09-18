@@ -8,8 +8,11 @@
 .globl bootstrap, init_pml4, init_pdp, init_pd
 .section .text
 bootstrap:
+	hlt
 	/* make sure interrupts are off */
 	cli
+
+	hlt
 
 	/* load the GDT */
 	lgdt (init_gdt64_ptr - KERNEL_VMA)
@@ -21,7 +24,6 @@ bootstrap:
 	pushl $0
 	popf
 
-	/* store the multiboot info */
 	pushl %eax
 	pushl %ebx
 

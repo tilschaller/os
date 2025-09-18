@@ -7,6 +7,5 @@ for PROJECT in $PROJECTS; do
 done
 
 rm -rf sysroot
-rm -rf isodir
-rm -rf nightc.iso
+rm -rf nightc.img
 rm -rf compile_commands.json

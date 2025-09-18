@@ -9,9 +9,9 @@
 #include "vmm.h"
 
 void mman_initialize() {
-    const uint32_t entries_c = *(uint32_t*)(0x8000);
+    const uint32_t entries_c = *(uint32_t*)(0x7c00);
 
-    memory_map *mmap = (memory_map*)(0x8004 + KERNEL_VMA);
+    memory_map *mmap = (memory_map*)(0x7c04 + KERNEL_VMA);
 
     // map all the physical memory to a predetermined address (HIGHER_HALF_MIRROR in vmm.h)
     vmm_map_physical_to_high(mmap, entries_c);

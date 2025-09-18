@@ -1,5 +1,4 @@
-*.iso
-isodir
+*.img
 sysroot
 *.o
 *.d

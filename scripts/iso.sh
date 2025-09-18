@@ -3,9 +3,6 @@
 set -e
 . ./scripts/build.sh
 
-mkdir -p isodir
-mkdir -p isodir/boot
-mkdir -p isodir/boot/grub
-
-cp sysroot/boot/nightc.kernel isodir/boot/nightc.kernel
-
+touch nightc.img
+dd if=sysroot/boot/bootloader.bin of=nightc.img bs=512 count=10 conv=notrunc
+dd if=sysroot/boot/nightc.kernel of=nightc.img bs=512 seek=10 conv=notrunc

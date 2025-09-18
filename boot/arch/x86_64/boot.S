@@ -16,7 +16,7 @@ _segment_0:
 
 	int $0x13
 
-	// if we succesfully loaded the 15 sectors into RAM we jump to the newly loaded sector
+	// if we succesfully loaded the 10 sectors into RAM we jump to the newly loaded sector
 	jnc _boot2
 
 	hlt
@@ -26,10 +26,10 @@ _segment_0:
 _data_dap:
 	.byte 0x10
 	.byte 0x0
-	.word 15
+	.word 9
 	.word 512
 	.word 0x7c0
-	.long 0x01
+	.long 1
 	.long 0
 
 .org 510
@@ -38,7 +38,7 @@ _data_dap:
 // end of first sector
 .org 512
 _boot2:
-	// we have 15 sectors (size of unused bytes on iso filesystem)
+	// we have 10 sectors (size of unused bytes on iso filesystem)
 	// enabling a20 line using bios (we just hope this is supported)
 	mov $0x2403, %ax
 	int $0x15 // testing if a20 is already on
@@ -61,7 +61,7 @@ _a20_activated:
 	// fetching a mmap using int 15h, eax=0xe820
 	mov $0x0, %ax 
 	mov %ax, %es 
-	mov $0x8000, %di 
+	mov $0x7c04, %di 
 	xor %ebx, %ebx 
 	xor %bp, %bp 
 	mov $0x0534D4150, %edx
@@ -99,8 +99,64 @@ _a20_activated:
 	test %ebx, %ebx
 	jne .e820lp
 .e820f:
-	movw %bp, %es:8000
+	movw %bp, %es:0x7c00
 	clc
+
+	// memory map is done, find the kernel
+	// it is directly after our 10 sectors
+	// first map the elf header onto sector 11
+	mov $0x42, %ah
+	// boot drive number
+	mov $0x80, %dl
+	mov $0x0, %bx
+	mov %bx, %ds
+	mov $_data_dap_elf_header, %si
+
+	int $0x13
+	jc hlt
+
+#define elf_header_start (512*10 + 0x7c00)
+	mov $0x0, %bx
+	mov %bx, %ds
+	mov $elf_header_start, %si 
+	movb %ds:(%si), %al
+	cmp $0x7f, %al
+	jne hlt
+
+	// move lower half of phoff into ax
+	// it should be that large anyway
+	movw %ds:32(%si), %ax
+
+	add %ax, %si
+	// if first program header is not PT_LOAD we just hlt
+	cmpb $1, %ds:(%si)
+	jne hlt
+
+	mov $0x0, %ax 
+	mov %ax, %fs 
+	mov _data_dap_elf_load_program, %di
+
+	movl %ds:8(%si), %eax
+	// divide by 512
+	shr $9, %eax
+	// add 10 to get offset from image
+	add $10, %eax
+	// write eax into the dap
+	movl %eax, %fs:8(%di)
+	
+	// same for file size
+	movl %ds:32(%si), %eax
+	shr $9, %eax 
+	movw %ax, %fs:2(%di)
+
+	// load the kernel
+	mov $0x42, %ah
+	mov $0x80, %dl
+	mov $0x0, %bx
+	mov %bx, %ds
+	mov $_data_dap_elf_load_program, %si
+	int $0x13
+	jc hlt
 
 	// activating protected mode
 	lgdt _data_gdtr
@@ -112,7 +168,7 @@ _a20_activated:
 	ljmp $0x8, $_protected_mode
 
 hlt:
-	mov $0x1234, %ax
+	mov $0x87654321, %eax
 	hlt
 
 .code32
@@ -124,10 +180,21 @@ _protected_mode:
 	mov %ax, %gs
 	mov %ax, %ss 
 
+	movw %fs:2(%di), %cx
+	shl $7, %ecx
+
+	mov $0x10000, %esi // kernel source pointer
+	mov $0x200000, %edi // dest pointer
+
+	cld
+	rep movsd
+
 	mov $0x12345678, %eax 
 
+	mov $0x200000, %si 
+	movb 3(%si), %al
 
-	// jump to kernel
+	ljmp $0x8, $0x200000
 
 	hlt
 
@@ -141,5 +208,24 @@ _data_gdtr:
 	.word _data_gdt_end - _data_gdt - 1
 	.long _data_gdt
 
-// should be last probably
-_data_mmap:
+.align 4
+_data_dap_elf_header:
+	.byte 0x10
+	.byte 0x0
+	.word 1
+	.word (512 * 10)
+	.word 0x7c0
+	.long 10
+	.long 0
+
+_data_dap_elf_load_program:
+	.byte 0x10
+	.byte 0x0
+	.word 0 // we write this
+	.word 0x0
+	.word 0x1000
+	.long 0 // we write this
+	.long 0
+
+// just to check if its too large
+.org (512 * 10)
