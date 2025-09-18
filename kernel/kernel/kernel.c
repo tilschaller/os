@@ -28,6 +28,8 @@ void kernel_main(const uint32_t magic, const uint32_t _mbi) {
 
   rsdp_descriptor_t *rsdp = find_rsdp();
 
+  enable_interrupt_controller(rsdp);
+
   printf("> \n");
 
   fprintf(debug, "DEBUG: leaving kernel main\n");

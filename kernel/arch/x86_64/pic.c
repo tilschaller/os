@@ -58,5 +58,5 @@ uint64_t enable_interrupt_controller(rsdp_descriptor_t *rsdp) {
       }
       i += entry->length;
   }
-  return io_apic_addr;
+  return 0;
 }
