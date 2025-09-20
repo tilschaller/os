@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <kernel/multiboot.h>
+#include <kernel/mman.h>
 
 #define PM_FREE 0
 #define PM_USED 1

@@ -1,5 +1,4 @@
 #include <kernel/boot.h>
-#include <kernel/multiboot.h>
 #include <kernel/mman.h>
 #include <kernel/util.h>
 #include "int.h"
@@ -8,8 +7,8 @@
 extern void mman_initialize(const uint32_t _mbi);
 
 
-void arch_init(const uint32_t _mbi) {
-    mman_initialize(_mbi);
+void arch_init() {
+    mman_initialize();
 
     // marks the very first page as used
     // because it could lead to confusion,

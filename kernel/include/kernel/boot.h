@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void arch_init(const uint32_t mbi);
+void arch_init();
 
 #endif // _BOOT_H

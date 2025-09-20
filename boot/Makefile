@@ -15,43 +15,37 @@ INCLUDEDIR?=$(PREFIX)/include
 
 CFLAGS:=$(CFLAGS) -march=native -fno-PIC -pedantic -W -Wall -ffreestanding -mno-red-zone -nostdinc -mcmodel=kernel -mno-sse3 -mno-ssse3 -mno-sse4.1 -mno-sse4.2 -mno-sse4 -mno-sse4a -mno-3dnow -mno-avx -mno-avx2 -fno-stack-protector -mgeneral-regs-only -mtune=generic -mno-bmi2 -mno-bmi -fno-asynchronous-unwind-tables
 LDFLAGS= -nostdlib -mcmodel=kernel -fno-PIC -no-pie -Wl,--build-id=none -Wl,-z,max-page-size=0x1000,-n
-CPPFLAGS:=$(CPPFLAGS) -D__is_kernel -Iinclude
+CPPFLAGS:=$(CPPFLAGS) -D__is_loader -Iinclude
 LDFLAGS:=$(LDFLAGS)
 LIBS:=$(LIBS) -nostdlib -lk -lgcc
 
 ARCHDIR=arch/$(HOSTARCH)
 
-include $(ARCHDIR)/make.config
-
-CFLAGS:=$(CFLAGS) $(KERNEL_ARCH_CFLAGS)
-CPPFLAGS:=$(CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
-LDFLAGS:=$(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
-LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
-
-KERNEL_OBJS=\
-$(KERNEL_ARCH_OBJS) \
-kernel/kernel.o \
-kernel/debug/debug_console.o \
-kernel/util.o \
+LOADER_OBJS=\
+$(LOADER_ARCH_OBJS) \
 
 OBJS=\
-$(KERNEL_OBJS) \
+$(LOADER_OBJS)
 
 LINK_LIST=\
 $(LDFLAGS) \
-$(KERNEL_OBJS) \
-$(LIBS) \
+$(LOADER_OBJS) \
 
-.PHONY: all clean install install-headers install-kernel
+include $(ARCHDIR)/make.config
+
+CFLAGS:=$(CFLAGS) $(LOADER_ARCH_CFLAGS)
+CPPFLAGS:=$(CPPFLAGS) $(LOADER_ARCH_CPPFLAGS)
+LDFLAGS:=$(LDFLAGS) $(LOADER_ARCH_LDFLAGS)
+LIBS:=$(LIBS) $(LOADER_ARCH_LIBS)
+
+.PHONY: all clean install
 .SUFFIXES: .o .c .S
 
-all: nightc.kernel
+all: bootloader.bin
 
-nightc.kernel: $(OBJS) $(ARCHDIR)/linker.ld
+bootloader.bin: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(LDFLAGS) $(LINK_LIST)
-
-$(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
-	OBJ=`$(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)` && cp "$$OBJ" $@
+	truncate -s 8192 bootloader.bin
 
 .c.o:
 	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) $(CPPFLAGS)
@@ -60,18 +54,10 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CPPFLAGS)
 
 clean:
-	rm -f nightc.kernel
+	rm -f bootloader.bin
 	rm -f $(OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d	
 
-install: install-headers install-kernel
-
-install-headers:
-	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	cp -R --preserve=timestamps include/. $(DESTDIR)$(INCLUDEDIR)/.
-
-install-kernel: nightc.kernel
+install: bootloader.bin
 	mkdir -p $(DESTDIR)$(BOOTDIR)
-	cp nightc.kernel $(DESTDIR)$(BOOTDIR)
-
--include $(OBJS:.o=.d)
+	cp bootloader.bin $(DESTDIR)$(BOOTDIR)

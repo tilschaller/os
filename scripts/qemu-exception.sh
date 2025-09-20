@@ -1,5 +1,0 @@
-#!/bin/sh
-set -e
-. ./scripts/iso.sh
-
-qemu-system-$(./scripts/target-triplet-to-arch.sh $HOST) -cdrom nightc.iso -m 4G -d int -no-reboot -debugcon stdio -M pc -cpu qemu64,+apic -smp 2
