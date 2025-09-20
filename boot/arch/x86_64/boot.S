@@ -99,7 +99,8 @@ _a20_activated:
 	test %ebx, %ebx
 	jne .e820lp
 .e820f:
-	movw %bp, %es:0x7c00
+	mov $0x7c00, %si
+	movw %bp, %es:(%si)
 	clc
 
 	// memory map is done, find the kernel
@@ -115,10 +116,9 @@ _a20_activated:
 	int $0x13
 	jc hlt
 
-#define elf_header_start (512*10 + 0x7c00)
-	mov $0x0, %bx
+	mov $0x900, %bx
 	mov %bx, %ds
-	mov $elf_header_start, %si 
+	xor %si, %si 
 	movb %ds:(%si), %al
 	cmp $0x7f, %al
 	jne hlt
@@ -134,7 +134,7 @@ _a20_activated:
 
 	mov $0x0, %ax 
 	mov %ax, %fs 
-	mov _data_dap_elf_load_program, %di
+	mov $_data_dap_elf_load_program, %di
 
 	movl %ds:8(%si), %eax
 	// divide by 512
@@ -146,7 +146,7 @@ _a20_activated:
 	
 	// same for file size
 	movl %ds:32(%si), %eax
-	shr $9, %eax 
+	shr $9, %eax
 	movw %ax, %fs:2(%di)
 
 	// load the kernel
@@ -181,20 +181,18 @@ _protected_mode:
 	mov %ax, %ss 
 
 	movw %fs:2(%di), %cx
-	shl $7, %ecx
+	shl $9, %ecx
 
-	mov $0x10000, %esi // kernel source pointer
+	mov $0x9200, %esi // kernel source pointer
 	mov $0x200000, %edi // dest pointer
 
 	cld
-	rep movsd
 
-	mov $0x12345678, %eax 
+	rep movsb
 
-	mov $0x200000, %si 
-	movb 3(%si), %al
+	mov $0x12345678, %eax
 
-	ljmp $0x8, $0x200000
+	jmp 0x200000
 
 	hlt
 
@@ -213,18 +211,19 @@ _data_dap_elf_header:
 	.byte 0x10
 	.byte 0x0
 	.word 1
-	.word (512 * 10)
-	.word 0x7c0
+	.word 0
+	.word 0x900
 	.long 10
 	.long 0
 
+.align 4
 _data_dap_elf_load_program:
 	.byte 0x10
 	.byte 0x0
-	.word 0 // we write this
+	.word 0x0 // we write this
 	.word 0x0
-	.word 0x1000
-	.long 0 // we write this
+	.word 0x920
+	.long 0x0 // we write this
 	.long 0
 
 // just to check if its too large

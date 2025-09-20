@@ -21,7 +21,10 @@ uint64_t get_cr3_value(void) {
 }
 
 // pointers to physical memory is marked with an underscore
-void vmm_map_physical_to_high(memory_map* mmap, const int entries_c) {
+void vmm_map_physical_to_high(memory_map* mmap, const uint32_t entries_c) {
+  // TODO: this actually needs to be:
+  // int64_t highest = mmap[entries_c - 1].length + mmap[entries_c - 1].length;
+  // but if i do this it triple faults
   uint64_t highest = mmap[entries_c - 1].length + mmap[entries_c - 1].length;
   fprintf(debug ,"DEBUG: highest physical address: 0x%x\n", highest);
 
@@ -42,7 +45,7 @@ void vmm_map_physical_to_high(memory_map* mmap, const int entries_c) {
   // amount of huge pages needed to map physical memory
   uint64_t pages_c = ((highest / 0x200000) + 510) >> 9;
   if (pages_c > 512) {
-      printf("TODO: IN: vmm.c: highest phys addr is bigger than 512 GB");
+      fprintf(debug, "TODO: IN: vmm.c: highest phys addr is bigger than 512 GB\n");
   }
 
   for (size_t i = 0; i < pages_c; i++) {
