@@ -2,7 +2,7 @@
 #define _VMM_H
 
 #include <stdint.h>
-
+#include <kernel/mman.h>
 
 #define HIGHER_HALF_MIRROR 0xffff800000000000
 

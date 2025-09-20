@@ -4,7 +4,7 @@
 #include "int.h"
 
 // i did not know where to put this
-extern void mman_initialize(const uint32_t _mbi);
+extern void mman_initialize();
 
 
 void arch_init() {

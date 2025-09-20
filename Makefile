@@ -1,6 +1,6 @@
 .PHONY: iso 
-iso: 
-	./scripts/iso.sh
+img: 
+	./scripts/img.sh
 
 .PHONY: run
 run:
