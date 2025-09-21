@@ -6,6 +6,10 @@ _boot1:
 	ljmp $0x0, $_segment_0
 	
 _segment_0:
+	xor %ax, %ax
+	mov %ax, %ss
+	mov $0x7c00, %si
+	
 	// https://fd.lod.bz/rbil/interrup/io_disk/1342.html
 	mov $0x42, %ah
 	// boot drive number
