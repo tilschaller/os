@@ -10,6 +10,7 @@
 
 void kernel_main(const uint32_t magic) {
 
+
   fprintf(debug, "DEBUG: entered kernel_main\n");
   // initialize global variables etc. needed to print text
   // never call printf before this, as it could lead to undefined behaviour

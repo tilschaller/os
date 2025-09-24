@@ -22,14 +22,11 @@ uint64_t get_cr3_value(void) {
 
 // pointers to physical memory is marked with an underscore
 void vmm_map_physical_to_high(memory_map* mmap, const uint32_t entries_c) {
-  // TODO: this actually needs to be:
-  // int64_t highest = mmap[entries_c - 1].length + mmap[entries_c - 1].length;
-  // but if i do this it triple faults
-  uint64_t highest = mmap[entries_c - 1].length + mmap[entries_c - 1].length;
-  fprintf(debug ,"DEBUG: highest physical address: 0x%x\n", highest);
+  // uint64_t highest = mmap[entries_c - 1].base_addr + mmap[entries_c - 1].length;
+  // fprintf(debug ,"DEBUG: highest physical address: 0x%x\n", highest);
 
-  // round up highest to the nearest HUGE_PAGE_SIZE value
-  highest = ((highest + 0x2000000 - 1) / 0x200000) * 0x200000;
+  // // round up highest to the nearest HUGE_PAGE_SIZE value
+  // highest = ((highest + 0x2000000 - 1) / 0x200000) * 0x200000;
 
   // get first entry into the page table
   uint64_t *pt_4 = (uint64_t*)(get_cr3_value() + KERNEL_VMA);
@@ -42,11 +39,15 @@ void vmm_map_physical_to_high(memory_map* mmap, const uint32_t entries_c) {
   // write pt_3 into pt_4
   pt_4[256] = _pt_3 | PAGE_WRITE | PAGE_PRESENT;
 
-  // amount of huge pages needed to map physical memory
-  uint64_t pages_c = ((highest / 0x200000) + 510) >> 9;
-  if (pages_c > 512) {
-      fprintf(debug, "TODO: IN: vmm.c: highest phys addr is bigger than 512 GB\n");
-  }
+  // // amount of huge pages needed to map physical memory
+  // uint64_t pages_c = ((highest / 0x200000) + 510) >> 9;
+  // if (pages_c > 512) {
+  //     fprintf(debug, "TODO: IN: vmm.c: highest phys addr is bigger than 512 GB\n");
+  // }
+
+  // just map 128 GB for now everything else crashed
+  // TODO: fix
+  uint64_t pages_c = 128;
 
   for (size_t i = 0; i < pages_c; i++) {
       uint64_t _pt_2 = pre_mmap_get_page(mmap, entries_c);

@@ -62,6 +62,7 @@ bootstrap:
 	orl     $0x80000000, %eax
 	movl    %eax, %cr0
 
+	
 	/* at this point we should be in IA-32e mode */
 	ljmp $0x08, $(boot64 - KERNEL_VMA)
 

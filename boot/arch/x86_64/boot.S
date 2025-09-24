@@ -6,6 +6,7 @@ _boot1:
 	ljmp $0x0, $_segment_0
 	
 _segment_0:
+	cli
 	xor %ax, %ax
 	mov %ax, %ss
 	mov $0x7c00, %si
@@ -41,7 +42,8 @@ _data_dap:
 .byte 0xAA
 // end of first sector
 .org 512
-_boot2:
+_boot2: 
+	cli
 	// we have 10 sectors (size of unused bytes on iso filesystem)
 	// enabling a20 line using bios (we just hope this is supported)
 	mov $0x2403, %ax
@@ -107,6 +109,8 @@ _a20_activated:
 	movw %bp, %es:(%si)
 	clc
 
+	cli
+
 	// memory map is done, find the kernel
 	// it is directly after our 10 sectors
 	// first map the elf header onto sector 11
@@ -162,6 +166,8 @@ _a20_activated:
 	int $0x13
 	jc hlt
 
+	cli
+
 	// activating protected mode
 	lgdt _data_gdtr
 
@@ -177,6 +183,8 @@ hlt:
 
 .code32
 _protected_mode:
+	cli
+		
 	mov $0x10, %ax
 	mov %ax, %ds 
 	mov %ax, %es 
@@ -193,6 +201,11 @@ _protected_mode:
 	cld
 
 	rep movsb
+
+	mov $0xb8000, %edi
+	mov $76, %al
+	mov $0x0f, %ah
+	mov %ax, %ds:(%edi)
 
 	mov $0x12345678, %eax
 
